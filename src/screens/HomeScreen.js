@@ -19,16 +19,20 @@ export default function HomeScreen() {
   };
 
   const insuranceCategories = [
-    { id: 1, name: 'Vehicle', icon: '🚗', color: Colors.primary, screen: 'MotorQuotation' },
+    { id: 1, name: 'Motor Vehicle', icon: '🚗', color: Colors.primary, screen: 'MotorQuotation' },
     { id: 2, name: 'Medical', icon: '🏥', color: Colors.success, screen: null },
-    { id: 3, name: 'WIBA', icon: '👷', color: Colors.primary, screen: null },
-    { id: 4, name: 'Last Expense', icon: '💼', color: Colors.success, screen: null }
+    { id: 3, name: 'WIBA', icon: '👷', color: Colors.warning, screen: null },
+    { id: 4, name: 'Last Expense', icon: '⚰️', color: Colors.secondary, screen: null },
+    { id: 5, name: 'Travel', icon: '✈️', color: Colors.info, screen: null },
+    { id: 6, name: 'Personal Accident', icon: '🛡️', color: Colors.primary, screen: null },
+    { id: 7, name: 'Professional Indemnity', icon: '💼', color: Colors.success, screen: null },
+    { id: 8, name: 'Domestic Package', icon: '🏠', color: Colors.warning, screen: null }
   ];
 
   const campaigns = [
     {
       id: 1,
-      title: 'Summer Drive',
+      title: 'Special Drive',
       description: 'Special vehicle insurance campaign with up to 20% discount',
     },
     {
@@ -123,33 +127,40 @@ export default function HomeScreen() {
         </View>
 
         {/* Agent Summary Card */}
-        <View style={styles.agentSummaryCard}>
+        <TouchableOpacity 
+          style={styles.agentSummaryCard}
+          onPress={() => navigation.navigate('MyAccount')}
+          activeOpacity={0.8}
+        >
           <View style={styles.agentHeader}>
             <View style={styles.agentInfo}>
               <Text style={styles.agentCode}>Agent Code: {mockData.agentCode}</Text>
               <Text style={styles.nextPayout}>Next Payout: {mockData.nextPayout}</Text>
             </View>
-            <View style={styles.agentIconContainer}>
-              <Text style={styles.agentIcon}>👤</Text>
+            <View style={styles.agentActions}>
+              <View style={styles.agentIconContainer}>
+                <Text style={styles.agentIcon}>👤</Text>
+              </View>
+              <Text style={styles.viewAccountText}>View Account →</Text>
             </View>
           </View>
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>KES {mockData.sales.toLocaleString()}</Text>
+              <Text style={styles.summaryValue}>KES {(mockData.commission / 1000).toFixed(0)}K</Text>
+              <Text style={styles.summaryLabel}>Commission</Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>KES {(mockData.sales / 1000).toFixed(0)}K</Text>
               <Text style={styles.summaryLabel}>Sales</Text>
             </View>
             <View style={styles.summaryDivider} />
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>KES {mockData.production.toLocaleString()}</Text>
+              <Text style={styles.summaryValue}>KES {(mockData.production / 1000).toFixed(0)}K</Text>
               <Text style={styles.summaryLabel}>Production</Text>
             </View>
-            <View style={styles.summaryDivider} />
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>KES {mockData.commission.toLocaleString()}</Text>
-              <Text style={styles.summaryLabel}>Commission</Text>
-            </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Insurance Categories - Horizontal Slider */}
         <View style={styles.sectionContainer}>
@@ -160,7 +171,7 @@ export default function HomeScreen() {
               <TouchableOpacity 
                 style={[styles.categoryCard, { borderColor: item.color }]}
                 onPress={() => {
-                  if (item.name === 'Vehicle') {
+                  if (item.name === 'Motor Vehicle') {
                     navigation.navigate('MotorQuotation');
                   }
                   // Add navigation for other categories later
@@ -453,17 +464,27 @@ const styles = StyleSheet.create({
     lineHeight: Typography.lineHeight.sm,
     flexWrap: 'wrap',
   },
+  agentActions: {
+    alignItems: 'center',
+    flexShrink: 0,
+  },
   agentIconContainer: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
+    marginBottom: Spacing.xs,
   },
   agentIcon: {
-    fontSize: 22,
+    fontSize: 18,
+  },
+  viewAccountText: {
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.primary,
+    lineHeight: Typography.lineHeight.xs,
   },
   summaryRow: {
     flexDirection: 'row',
