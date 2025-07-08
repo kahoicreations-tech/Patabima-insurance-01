@@ -1,15 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function MyAccountScreen() {
   const insets = useSafeAreaInsets();
+  const { user, logout } = useAuth();
   
   const agentData = {
-    name: 'John Doe',
-    agentCode: 'Hd1232',
+    name: user?.name || 'John Doe',
+    agentCode: user?.agentCode || 'Hd1232',
     build: '55',
     upcomingCommission: 0,
     nextPayout: '16th July, 2025',
@@ -18,6 +20,30 @@ export default function MyAccountScreen() {
       production: 0,
       commission: 0
     }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const ActivityTab = ({ title, isActive, onPress }) => (
@@ -157,6 +183,17 @@ export default function MyAccountScreen() {
               <Text style={styles.emptyHistorySubtext}>Your commission history will appear here once you start earning</Text>
             </View>
           </View>
+        </View>
+
+        {/* Logout Button */}
+        <View style={styles.logoutSection}>
+          <TouchableOpacity 
+            style={styles.logoutButton}
+            onPress={handleLogout}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.logoutButtonText}>Logout</Text>
+          </TouchableOpacity>
         </View>
 
       </ScrollView>
@@ -510,5 +547,20 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: Typography.lineHeight.sm,
     textAlign: 'center',
+  },
+  logoutSection: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xl,
+  },
+  logoutButton: {
+    backgroundColor: Colors.error,
+    borderRadius: 12,
+    padding: Spacing.lg,
+    alignItems: 'center',
+  },
+  logoutButtonText: {
+    color: Colors.background,
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.bold,
   },
 });
