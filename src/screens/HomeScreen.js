@@ -106,9 +106,6 @@ export default function HomeScreen() {
     <View style={styles.campaignCard}>
       <Text style={styles.campaignTitle}>{item.title}</Text>
       <Text style={styles.campaignDescription}>{item.description}</Text>
-      <TouchableOpacity style={styles.campaignButton}>
-        <Text style={styles.campaignButtonText}>Learn More</Text>
-      </TouchableOpacity>
     </View>
   );
 
@@ -396,20 +393,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
-    marginBottom: Spacing.md,
-    lineHeight: Typography.lineHeight.md,
-  },
-  campaignButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-  },
-  campaignButtonText: {
-    color: Colors.background,
-    fontSize: Typography.fontSize.md,
-    fontFamily: Typography.fontFamily.semiBold,
     lineHeight: Typography.lineHeight.md,
   },
   scrollContent: {
