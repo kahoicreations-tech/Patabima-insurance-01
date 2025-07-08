@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions, Animated } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,6 +12,8 @@ export default function InsuranceWelcomeScreen() {
   const insets = useSafeAreaInsets();
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
 
   const insuranceProducts = [
     { id: 1, name: 'Motor Vehicle Insurance', icon: '🚗', description: 'Comprehensive vehicle protection' },
@@ -25,6 +27,20 @@ export default function InsuranceWelcomeScreen() {
   ];
 
   useEffect(() => {
+    // Entrance animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     const interval = setInterval(() => {
       setCurrentIndex(prevIndex => {
         const nextIndex = (prevIndex + 1) % insuranceProducts.length;
@@ -34,14 +50,16 @@ export default function InsuranceWelcomeScreen() {
         });
         return nextIndex;
       });
-    }, 3000);
+    }, 4000); // Slightly longer interval for better readability
 
     return () => clearInterval(interval);
   }, []);
 
   const renderInsuranceCard = ({ item }) => (
-    <View style={styles.insuranceCard}>
-      <Text style={styles.insuranceIcon}>{item.icon}</Text>
+    <View style={styles.insuranceItem}>
+      <View style={styles.iconContainer}>
+        <Text style={styles.insuranceIcon}>{item.icon}</Text>
+      </View>
       <Text style={styles.insuranceName}>{item.name}</Text>
       <Text style={styles.insuranceDescription}>{item.description}</Text>
     </View>
@@ -51,11 +69,34 @@ export default function InsuranceWelcomeScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar style="dark" />
       
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Insurance product sliders</Text>
-      </View>
+      {/* Background decoration */}
+      <View style={styles.backgroundDecoration} />
+      
+      <Animated.View 
+        style={[
+          styles.welcomeContainer,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
+        <Text style={styles.welcomeTitle}>Welcome to PataBima</Text>
+        <Text style={styles.welcomeSubtitle}>Your Trusted Insurance Partner</Text>
+        <View style={styles.descriptionContainer}>
+          <Text style={styles.welcomeDescription}>
+            In a world shrouded with doubt, we offer stability and protection. 
+            As professionals, we spend time with our customers to understand their needs 
+            and facilitate customized, cost-effective insurance solutions.
+          </Text>
+        </View>
+      </Animated.View>
 
       <View style={styles.sliderContainer}>
+        <View style={styles.productsHeader}>
+          <Text style={styles.productsTitle}>Our Insurance Products</Text>
+          <View style={styles.titleUnderline} />
+        </View>
         <FlatList
           ref={flatListRef}
           data={insuranceProducts}
@@ -64,11 +105,11 @@ export default function InsuranceWelcomeScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           pagingEnabled
-          snapToInterval={width - 40}
+          snapToInterval={width}
           decelerationRate="fast"
           contentContainerStyle={styles.sliderContent}
           onMomentumScrollEnd={(event) => {
-            const index = Math.round(event.nativeEvent.contentOffset.x / (width - 40));
+            const index = Math.round(event.nativeEvent.contentOffset.x / width);
             setCurrentIndex(index);
           }}
         />
@@ -76,11 +117,14 @@ export default function InsuranceWelcomeScreen() {
 
       <View style={styles.indicatorContainer}>
         {insuranceProducts.map((_, index) => (
-          <View
+          <Animated.View
             key={index}
             style={[
               styles.indicator,
-              { backgroundColor: index === currentIndex ? Colors.primary : Colors.border }
+              { 
+                backgroundColor: index === currentIndex ? Colors.primary : Colors.border,
+                transform: [{ scale: index === currentIndex ? 1.2 : 1 }]
+              }
             ]}
           />
         ))}
@@ -90,8 +134,10 @@ export default function InsuranceWelcomeScreen() {
         <TouchableOpacity 
           style={styles.getStartedButton}
           onPress={() => navigation.navigate('Login')}
+          activeOpacity={0.8}
         >
-          <Text style={styles.getStartedText}>Get started</Text>
+          <Text style={styles.getStartedText}>Get Started</Text>
+          <Text style={styles.buttonArrow}>→</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -103,32 +149,47 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  headerContainer: {
+  backgroundDecoration: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 200,
+    backgroundColor: Colors.primaryLight,
+    opacity: 0.3,
+    borderBottomLeftRadius: 50,
+    borderBottomRightRadius: 50,
+  },
+  welcomeContainer: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.xl,
     alignItems: 'center',
+    zIndex: 1,
   },
-  headerText: {
+  welcomeTitle: {
+    fontSize: Typography.fontSize.xxl + 4,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.primary,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+    lineHeight: Typography.lineHeight.xxl,
+    textShadowColor: 'rgba(213, 34, 43, 0.1)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  welcomeSubtitle: {
     fontSize: Typography.fontSize.lg,
     fontFamily: Typography.fontFamily.medium,
-    color: Colors.textSecondary,
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
     lineHeight: Typography.lineHeight.lg,
   },
-  sliderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  sliderContent: {
-    paddingHorizontal: 20,
-  },
-  insuranceCard: {
-    width: width - 80,
+  descriptionContainer: {
     backgroundColor: Colors.background,
-    borderRadius: 20,
-    padding: Spacing.xl,
-    marginHorizontal: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
+    borderRadius: 16,
+    padding: Spacing.lg,
+    shadowColor: Colors.shadow,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -136,12 +197,69 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
-    borderWidth: 1,
-    borderColor: Colors.backgroundGray,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.primary,
+  },
+  welcomeDescription: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: Typography.lineHeight.md + 2,
+  },
+  sliderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  productsHeader: {
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+  },
+  productsTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    lineHeight: Typography.lineHeight.lg,
+    marginBottom: Spacing.sm,
+  },
+  titleUnderline: {
+    width: 60,
+    height: 3,
+    backgroundColor: Colors.primary,
+    borderRadius: 2,
+  },
+  sliderContent: {
+    alignItems: 'center',
+  },
+  insuranceItem: {
+    width: width,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
+  },
+  iconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: Colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.lg,
+    shadowColor: Colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
   },
   insuranceIcon: {
     fontSize: 64,
-    marginBottom: Spacing.lg,
+    textAlign: 'center',
   },
   insuranceName: {
     fontSize: Typography.fontSize.xl,
@@ -152,22 +270,35 @@ const styles = StyleSheet.create({
     lineHeight: Typography.lineHeight.xl,
   },
   insuranceDescription: {
-    fontSize: Typography.fontSize.md,
+    fontSize: Typography.fontSize.lg,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: Typography.lineHeight.md,
+    lineHeight: Typography.lineHeight.lg,
+    paddingHorizontal: Spacing.lg,
   },
   indicatorContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     paddingVertical: Spacing.lg,
+    backgroundColor: Colors.backgroundLight,
+    borderRadius: 20,
+    marginHorizontal: Spacing.xl,
+    marginBottom: Spacing.md,
   },
   indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginHorizontal: 6,
+    shadowColor: Colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   buttonContainer: {
     paddingHorizontal: Spacing.lg,
@@ -176,13 +307,33 @@ const styles = StyleSheet.create({
   getStartedButton: {
     backgroundColor: Colors.primary,
     paddingVertical: Spacing.lg,
-    borderRadius: 8,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: 16,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    shadowColor: Colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   getStartedText: {
     color: Colors.background,
     fontSize: Typography.fontSize.lg,
-    fontFamily: Typography.fontFamily.semiBold,
+    fontFamily: Typography.fontFamily.bold,
     lineHeight: Typography.lineHeight.lg,
+    marginRight: Spacing.sm,
+  },
+  buttonArrow: {
+    color: Colors.background,
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.bold,
+    transform: [{ translateX: 2 }],
   },
 });
