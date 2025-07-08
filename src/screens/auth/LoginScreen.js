@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   title: {
     fontSize: Typography.fontSize.xxxl,
@@ -156,7 +156,6 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     flex: 1,
-    justifyContent: 'center',
   },
   inputContainer: {
     marginBottom: Spacing.lg,
