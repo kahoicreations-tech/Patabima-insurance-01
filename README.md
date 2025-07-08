@@ -59,52 +59,115 @@ PataBima App/
 └── MOTOR_INSURANCE_FLOW.md        # Detailed feature documentation
 ```
 
-## 🛠 Technologies
+## 📁 Enhanced Project Structure
 
-- **React Native** with Expo SDK 53
-- **React Navigation v6** for navigation
-- **Poppins Font** for typography
-- **Document Picker** for file uploads
-- **Image Picker** for camera integration
-- **React Native Paper** for enhanced UI components
+The project has been reorganized for better maintainability and scalability:
 
-## 📋 Motor Insurance Flow Steps
+```
+PataBima-App/
+├── src/
+│   ├── components/           # Reusable UI components
+│   │   ├── common/          # Generic components
+│   │   │   ├── Button.js    # Reusable button component
+│   │   │   ├── Card.js      # Card wrapper component
+│   │   │   └── Input.js     # Form input component
+│   │   ├── cards/           # Specific card components
+│   │   │   ├── AgentSummaryCard.js
+│   │   │   ├── CampaignCard.js
+│   │   │   └── InsuranceCategoryCard.js
+│   │   └── index.js         # Component exports
+│   │
+│   ├── screens/             # Screen components
+│   │   ├── auth/            # Authentication screens
+│   │   │   ├── SplashScreen.js
+│   │   │   ├── InsuranceWelcomeScreen.js
+│   │   │   ├── LoginScreen.js
+│   │   │   ├── SignupScreen.js
+│   │   │   └── ForgotPasswordScreen.js
+│   │   ├── HomeScreen.js    # Main dashboard
+│   │   ├── MotorQuotationScreen.js # Motor insurance flow
+│   │   ├── QuotationsScreen.js
+│   │   ├── UpcomingScreen.js
+│   │   └── MyAccountScreen.js
+│   │
+│   ├── navigation/          # Navigation configuration
+│   │   ├── AppNavigator.js  # Auth & main app navigation
+│   │   └── index.js
+│   │
+│   ├── contexts/            # React Context providers
+│   │   └── AuthContext.js   # Authentication state management
+│   │
+│   ├── services/            # API calls and external services
+│   │   ├── api.js           # API service with all endpoints
+│   │   └── index.js
+│   │
+│   ├── hooks/               # Custom React hooks
+│   │   ├── useData.js       # Data fetching hooks
+│   │   ├── useFormValidation.js # Form validation hook
+│   │   └── index.js
+│   │
+│   ├── utils/               # Helper functions
+│   │   ├── helpers.js       # Utility functions
+│   │   └── index.js
+│   │
+│   ├── constants/           # App constants
+│   │   ├── Colors.js        # Color palette
+│   │   ├── Typography.js    # Font styles
+│   │   ├── Layout.js        # Layout constants
+│   │   └── index.js
+│   │
+│   ├── config/              # Configuration files
+│   │   └── constants.js     # App-wide configuration
+│   │
+│   └── types/               # TypeScript type definitions
+│       └── index.ts         # Type definitions
+│
+├── assets/                  # Static assets (images, fonts)
+├── docs/                    # Documentation and reference files
+│   ├── IMPLEMENTATION_SUMMARY.md
+│   ├── MOTOR_INSURANCE_FLOW.md
+│   ├── PartaBima Wireframe.pdf
+│   └── [other documentation files]
+├── App.js                   # Main app component
+├── package.json             # Dependencies and scripts
+└── README.md                # This file
+```
 
-1. **Vehicle Category**: Select from Private, Commercial, PSV, Motorcycle, TukTuk, Special Classes
-2. **Insurance Product**: Choose Third Party or Comprehensive coverage
-3. **Policy Details**: Personal info, duration, insurer selection
-4. **Vehicle Verification**: AKI lookup with existing cover detection
-5. **Document Upload**: ID, Logbook, KRA PIN with camera/gallery support
-6. **Payment**: Premium calculation and M-PESA STK Push
-7. **Confirmation**: Policy details, receipt generation, and next actions
+## 🎨 Design System & Components
 
-## 🎯 Production Features
+### Reusable Components
+- **Button**: Multiple variants (primary, secondary, outline) with loading states
+- **Card**: Flexible card wrapper with shadow and padding options
+- **Input**: Form input with validation states and password toggle
+- **AgentSummaryCard**: Dashboard summary with commission/sales data
+- **CampaignCard**: Marketing campaign display with CTA buttons
+- **InsuranceCategoryCard**: Insurance type selection cards
 
-### Business Logic
-- **Dynamic Premium Calculation**: Based on vehicle type, age, value, and risk factors
-- **Statutory Fees**: Automatic calculation of levies (Training Levy, PCF, Stamp Duty)
-- **Minimum Premiums**: Enforced minimums per vehicle category
-- **Policy Duration Options**: 1, 3, 6, or 12-month terms
+### Authentication Flow
+- **Complete onboarding flow** with splash, welcome, login, signup screens
+- **Demo authentication** for development and testing
+- **Form validation** with real-time error feedback
+- **Keyboard handling** with KeyboardAvoidingView
 
-### Security & Validation
-- **Document Validation**: File type and size restrictions
-- **Form Validation**: Real-time field validation with helpful messages
-- **Payment Security**: Secure M-PESA integration patterns
-- **Input Sanitization**: Protection against malicious inputs
+## 🔧 Development Utilities
 
-### UX Enhancements
-- **Quick Actions**: Prominent motor insurance button on home screen
-- **Progress Tracking**: Visual stepper with clickable navigation
-- **Auto-Fill**: Sample data for testing and AKI data population
-- **Error Recovery**: Clear error messages with recovery options
+### Custom Hooks
+- **useQuotations**: Manage quotation data with CRUD operations
+- **useRenewals**: Handle policy renewal data
+- **useClaims**: Manage claims data with pagination
+- **useFormValidation**: Form validation with custom rules
 
-## 📊 Sample Data
+### Utility Functions
+- **formatCurrency**: Currency formatting with abbreviation support
+- **formatDate**: Flexible date formatting options
+- **validateEmail/Phone**: Input validation helpers
+- **debounce**: Performance optimization for search/input
 
-The app includes a "Test" button that pre-fills realistic sample data:
-- **Vehicle**: Toyota Corolla 2020 (KCA123A)
-- **Owner**: John Kamau Mwangi
-- **Coverage**: Comprehensive Insurance
-- **Premium**: ~KES 67,500 (calculated dynamically)
+### API Service Layer
+- **Centralized API calls** with retry logic and error handling
+- **Authentication management** with token handling
+- **Endpoint organization** by feature (auth, quotations, policies, etc.)
+- **Mock data support** for development
 
 ## 🚀 Getting Started
 
@@ -134,6 +197,51 @@ The app includes a "Test" button that pre-fills realistic sample data:
 2. Scan the QR code with:
    - **iOS**: Camera app or Expo Go app
    - **Android**: Expo Go app
+
+### Using Components
+```javascript
+import { Button, Card, Input } from '../components';
+import { AgentSummaryCard } from '../components/cards';
+
+// Use in your screens
+<Card>
+  <Input 
+    label="Phone Number"
+    placeholder="Enter phone number"
+    value={phone}
+    onChangeText={setPhone}
+  />
+  <Button 
+    title="Submit"
+    onPress={handleSubmit}
+    loading={isLoading}
+  />
+</Card>
+```
+
+### Using Hooks
+```javascript
+import { useQuotations, useFormValidation } from '../hooks';
+
+const MyScreen = () => {
+  const { quotations, loading, createQuotation } = useQuotations();
+  const { values, errors, handleChange, validateForm } = useFormValidation(
+    initialValues,
+    validationRules
+  );
+  
+  // Your component logic
+};
+```
+
+### Using Services
+```javascript
+import { quotationsAPI, userAPI } from '../services';
+
+// API calls
+const quotations = await quotationsAPI.getQuotations();
+const userProfile = await userAPI.getProfile();
+```
 
 ## 📚 Documentation
 
