@@ -8,8 +8,8 @@ export default function MyAccountScreen() {
   const insets = useSafeAreaInsets();
   
   const agentData = {
-    name: 'Kelvin Kahoi',
-    agentCode: 'IA16332',
+    name: 'John Doe',
+    agentCode: 'Hd1232',
     build: '55',
     upcomingCommission: 0,
     nextPayout: '16th July, 2025',
@@ -50,24 +50,29 @@ export default function MyAccountScreen() {
 
         {/* Profile Section */}
         <View style={styles.profileSection}>
-          <Text style={styles.agentName}>{agentData.name}</Text>
-          
-          <View style={styles.agentCodeContainer}>
-            <Text style={styles.agentCodeLabel}>Sales Agent Code:</Text>
-            <View style={styles.agentCodeBadge}>
-              <Text style={styles.agentCode}>{agentData.agentCode}</Text>
-              <TouchableOpacity style={styles.copyButton}>
-                <Text style={styles.copyIcon}>📋</Text>
+          <View style={styles.profileCard}>
+            <View style={styles.profileIconContainer}>
+              <Text style={styles.profileIcon}>👤</Text>
+            </View>
+            <Text style={styles.agentName}>{agentData.name}</Text>
+            
+            <View style={styles.agentCodeContainer}>
+              <Text style={styles.agentCodeLabel}>Sales Agent Code</Text>
+              <View style={styles.agentCodeBadge}>
+                <Text style={styles.agentCode}>{agentData.agentCode}</Text>
+                <TouchableOpacity style={styles.copyButton}>
+                  <Text style={styles.copyIcon}>📋</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.buildContainer}>
+              <Text style={styles.buildText}>Build ({agentData.build})</Text>
+              <TouchableOpacity style={styles.updateButton}>
+                <Text style={styles.updateText}>Update</Text>
+                <Text style={styles.refreshIcon}>🔄</Text>
               </TouchableOpacity>
             </View>
-          </View>
-
-          <View style={styles.buildContainer}>
-            <Text style={styles.buildText}>Build ({agentData.build})</Text>
-            <TouchableOpacity style={styles.updateButton}>
-              <Text style={styles.updateText}>Update</Text>
-              <Text style={styles.refreshIcon}>🔄</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -76,14 +81,20 @@ export default function MyAccountScreen() {
           <Text style={styles.sectionTitle}>My Earnings</Text>
           
           <View style={styles.commissionCard}>
-            <Text style={styles.commissionLabel}>Upcoming Commission</Text>
-            <Text style={styles.commissionAmount}>KES {agentData.upcomingCommission}</Text>
+            <View style={styles.commissionHeader}>
+              <Text style={styles.commissionLabel}>Upcoming Commission</Text>
+              <View style={styles.commissionIconContainer}>
+                <Text style={styles.commissionIcon}>💰</Text>
+              </View>
+            </View>
+            <Text style={styles.commissionAmount}>KES {agentData.upcomingCommission.toLocaleString()}</Text>
             <Text style={styles.payoutText}>
               Your payout is scheduled for {agentData.nextPayout}
             </Text>
             
             <TouchableOpacity style={styles.viewEarningsButton}>
               <Text style={styles.viewEarningsText}>View Earnings</Text>
+              <Text style={styles.arrowIcon}>→</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -97,18 +108,39 @@ export default function MyAccountScreen() {
             <ActivityTab title="Last Commission" isActive={false} />
           </View>
 
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Sales</Text>
-              <Text style={styles.statValue}>{agentData.todayStats.sales} Policies</Text>
+          <View style={styles.statsCard}>
+            <View style={styles.statRow}>
+              <View style={styles.statIconContainer}>
+                <Text style={styles.statIcon}>📊</Text>
+              </View>
+              <View style={styles.statInfo}>
+                <Text style={styles.statLabel}>Sales</Text>
+                <Text style={styles.statValue}>{agentData.todayStats.sales} Policies</Text>
+              </View>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Production</Text>
-              <Text style={styles.statValue}>KES {agentData.todayStats.production}</Text>
+            
+            <View style={styles.statDivider} />
+            
+            <View style={styles.statRow}>
+              <View style={styles.statIconContainer}>
+                <Text style={styles.statIcon}>💼</Text>
+              </View>
+              <View style={styles.statInfo}>
+                <Text style={styles.statLabel}>Production</Text>
+                <Text style={styles.statValue}>KES {agentData.todayStats.production.toLocaleString()}</Text>
+              </View>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Commission</Text>
-              <Text style={styles.statValue}>KES {agentData.todayStats.commission}</Text>
+            
+            <View style={styles.statDivider} />
+            
+            <View style={styles.statRow}>
+              <View style={styles.statIconContainer}>
+                <Text style={styles.statIcon}>💵</Text>
+              </View>
+              <View style={styles.statInfo}>
+                <Text style={styles.statLabel}>Commission</Text>
+                <Text style={styles.statValue}>KES {agentData.todayStats.commission.toLocaleString()}</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -116,8 +148,14 @@ export default function MyAccountScreen() {
         {/* Commission History */}
         <View style={styles.historySection}>
           <Text style={styles.sectionTitle}>Commission History</Text>
-          <View style={styles.emptyHistory}>
-            <Text style={styles.emptyHistoryText}>No commission history available</Text>
+          <View style={styles.historyCard}>
+            <View style={styles.emptyHistory}>
+              <View style={styles.emptyIconContainer}>
+                <Text style={styles.emptyIcon}>📈</Text>
+              </View>
+              <Text style={styles.emptyHistoryText}>No commission history available</Text>
+              <Text style={styles.emptyHistorySubtext}>Your commission history will appear here once you start earning</Text>
+            </View>
           </View>
         </View>
 
@@ -161,9 +199,34 @@ const styles = StyleSheet.create({
     lineHeight: Typography.lineHeight.md,
   },
   profileSection: {
-    alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.xl,
+  },
+  profileCard: {
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    padding: Spacing.xl,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  profileIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  profileIcon: {
+    fontSize: 36,
   },
   agentName: {
     fontSize: Typography.fontSize.xxxl,
@@ -241,9 +304,34 @@ const styles = StyleSheet.create({
     lineHeight: Typography.lineHeight.xl,
   },
   commissionCard: {
-    backgroundColor: Colors.backgroundGray,
-    padding: Spacing.lg,
-    borderRadius: 8,
+    backgroundColor: Colors.background,
+    padding: Spacing.xl,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  commissionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  commissionIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  commissionIcon: {
+    fontSize: 20,
   },
   commissionLabel: {
     fontSize: Typography.fontSize.md,
@@ -269,14 +357,31 @@ const styles = StyleSheet.create({
   viewEarningsButton: {
     backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
-    borderRadius: 8,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: Colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   viewEarningsText: {
     color: Colors.background,
     fontSize: Typography.fontSize.md,
     fontFamily: Typography.fontFamily.semiBold,
     lineHeight: Typography.lineHeight.md,
+    marginRight: Spacing.sm,
+  },
+  arrowIcon: {
+    color: Colors.background,
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.bold,
   },
   activitySection: {
     paddingHorizontal: Spacing.lg,
@@ -305,13 +410,46 @@ const styles = StyleSheet.create({
   activeActivityTabText: {
     color: Colors.background,
   },
-  statsGrid: {
+  statsCard: {
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+  },
+  statIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  statIcon: {
+    fontSize: 20,
+  },
+  statInfo: {
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  statItem: {
-    flex: 1,
     alignItems: 'center',
+  },
+  statDivider: {
+    height: 1,
+    backgroundColor: Colors.backgroundGray,
+    marginHorizontal: Spacing.md,
   },
   statLabel: {
     fontSize: Typography.fontSize.sm,
@@ -330,14 +468,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xl,
   },
+  historyCard: {
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    padding: Spacing.xl,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
   emptyHistory: {
     alignItems: 'center',
-    paddingVertical: Spacing.xl,
+    paddingVertical: Spacing.lg,
+  },
+  emptyIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: Colors.backgroundLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  emptyIcon: {
+    fontSize: 28,
   },
   emptyHistoryText: {
     fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textPrimary,
+    lineHeight: Typography.lineHeight.md,
+    marginBottom: Spacing.xs,
+  },
+  emptyHistorySubtext: {
+    fontSize: Typography.fontSize.sm,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
-    lineHeight: Typography.lineHeight.md,
+    lineHeight: Typography.lineHeight.sm,
+    textAlign: 'center',
   },
 });

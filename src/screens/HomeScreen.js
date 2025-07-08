@@ -122,38 +122,30 @@ export default function HomeScreen() {
           <Text style={styles.subtitle}>Welcome to PataBima</Text>
         </View>
 
-        {/* Quick Action - Motor Insurance */}
-        <View style={styles.quickActionContainer}>
-          <TouchableOpacity 
-            style={styles.quickActionCard}
-            onPress={() => navigation.navigate('MotorQuotation')}
-          >
-            <View style={styles.quickActionContent}>
-              <View style={styles.quickActionIconContainer}>
-                <Text style={styles.quickActionIcon}>🚗</Text>
-              </View>
-              <View style={styles.quickActionTextContainer}>
-                <Text style={styles.quickActionTitle}>Buy Motor Insurance</Text>
-                <Text style={styles.quickActionSubtitle}>Get instant cover for your vehicle</Text>
-              </View>
-              <Text style={styles.quickActionArrow}>→</Text>
+        {/* Agent Summary Card */}
+        <View style={styles.agentSummaryCard}>
+          <View style={styles.agentHeader}>
+            <View style={styles.agentInfo}>
+              <Text style={styles.agentCode}>Agent Code: {mockData.agentCode}</Text>
+              <Text style={styles.nextPayout}>Next Payout: {mockData.nextPayout}</Text>
             </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Summary Cards */}
-        <View style={styles.summaryCard}>
+            <View style={styles.agentIconContainer}>
+              <Text style={styles.agentIcon}>👤</Text>
+            </View>
+          </View>
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>KES {mockData.sales}</Text>
+              <Text style={styles.summaryValue}>KES {mockData.sales.toLocaleString()}</Text>
               <Text style={styles.summaryLabel}>Sales</Text>
             </View>
+            <View style={styles.summaryDivider} />
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>KES {mockData.production}</Text>
+              <Text style={styles.summaryValue}>KES {mockData.production.toLocaleString()}</Text>
               <Text style={styles.summaryLabel}>Production</Text>
             </View>
+            <View style={styles.summaryDivider} />
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>KES {mockData.commission}</Text>
+              <Text style={styles.summaryValue}>KES {mockData.commission.toLocaleString()}</Text>
               <Text style={styles.summaryLabel}>Commission</Text>
             </View>
           </View>
@@ -417,24 +409,65 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.md,
   },
-  summaryCard: {
+  agentSummaryCard: {
     marginHorizontal: Spacing.lg,
     backgroundColor: Colors.background,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.primary,
     shadowColor: Colors.shadow,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  agentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  agentInfo: {
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  agentCode: {
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+    lineHeight: Typography.lineHeight.lg,
+  },
+  nextPayout: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
+    lineHeight: Typography.lineHeight.sm,
+    flexWrap: 'wrap',
+  },
+  agentIconContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: Colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  agentIcon: {
+    fontSize: 22,
   },
   summaryRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   summaryItem: {
     flex: 1,
@@ -444,7 +477,7 @@ const styles = StyleSheet.create({
   summaryValue: {
     fontSize: Typography.fontSize.lg,
     fontFamily: Typography.fontFamily.bold,
-    color: Colors.textPrimary,
+    color: Colors.primary,
     marginBottom: Spacing.xs,
     lineHeight: Typography.lineHeight.lg,
   },
@@ -453,6 +486,12 @@ const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.medium,
     color: Colors.textSecondary,
     lineHeight: Typography.lineHeight.sm,
+  },
+  summaryDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: Colors.border,
+    marginHorizontal: Spacing.md,
   },
   categoriesGrid: {
     flexDirection: 'row',
@@ -658,62 +697,26 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     lineHeight: Typography.lineHeight.md,
   },
+  previewVehicle: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    lineHeight: Typography.lineHeight.sm,
+  },
+  previewStatus: {
+    paddingVertical: 4,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: 12,
+  },
+  previewStatusText: {
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
+    lineHeight: Typography.lineHeight.xs,
+  },
   previewDate: {
     fontSize: Typography.fontSize.sm,
     fontFamily: Typography.fontFamily.medium,
     color: Colors.primary,
     lineHeight: Typography.lineHeight.sm,
-  },
-
-  // Quick Action Styles
-  quickActionContainer: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  quickActionCard: {
-    backgroundColor: Colors.primary,
-    borderRadius: 16,
-    padding: Spacing.lg,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  quickActionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  quickActionIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
-  },
-  quickActionIcon: {
-    fontSize: 28,
-  },
-  quickActionTextContainer: {
-    flex: 1,
-  },
-  quickActionTitle: {
-    fontSize: Typography.fontSize.lg,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.background,
-    marginBottom: 4,
-  },
-  quickActionSubtitle: {
-    fontSize: Typography.fontSize.sm,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.background,
-    opacity: 0.9,
-  },
-  quickActionArrow: {
-    fontSize: Typography.fontSize.xl,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.background,
   },
 });
