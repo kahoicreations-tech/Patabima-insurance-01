@@ -169,7 +169,7 @@ export default function HomeScreen() {
             data={insuranceCategories}
             renderItem={({ item }) => (
               <TouchableOpacity 
-                style={[styles.categoryCard, { borderColor: item.color }]}
+                style={styles.categoryCard}
                 onPress={() => {
                   if (item.name === 'Motor Vehicle') {
                     navigation.navigate('MotorQuotation');
@@ -185,7 +185,7 @@ export default function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoriesSlider}
-            snapToInterval={140}
+            snapToInterval={160}
             decelerationRate="fast"
           />
         </View>
@@ -523,21 +523,12 @@ const styles = StyleSheet.create({
     paddingRight: Spacing.lg,
   },
   categoryCard: {
-    width: 120,
-    backgroundColor: Colors.background,
-    borderWidth: 1.5,
-    borderRadius: 12,
+    width: 140,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 16,
     padding: Spacing.lg,
     alignItems: 'center',
-    marginRight: Spacing.md,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    marginRight: Spacing.sm,
   },
   categoryIcon: {
     fontSize: 32,
