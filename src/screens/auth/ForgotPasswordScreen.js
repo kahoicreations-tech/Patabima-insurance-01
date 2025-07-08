@@ -183,10 +183,21 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     backgroundColor: Colors.primary,
-    borderRadius: 12,
-    padding: Spacing.lg,
+    borderRadius: 16,
+    paddingVertical: Spacing.lg + 4,
+    paddingHorizontal: Spacing.xl,
     alignItems: 'center',
     marginTop: Spacing.md,
+    shadowColor: Colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   resetButtonText: {
     color: Colors.background,

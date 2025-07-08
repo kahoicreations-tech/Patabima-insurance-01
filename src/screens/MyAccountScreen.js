@@ -69,8 +69,12 @@ export default function MyAccountScreen() {
         {/* Header with Logout */}
         <View style={styles.header}>
           <Text style={styles.title}>My Account</Text>
-          <TouchableOpacity style={styles.logoutButton}>
-            <Text style={styles.logoutText}>Logout</Text>
+          <TouchableOpacity 
+            style={styles.headerLogoutButton}
+            onPress={handleLogout}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.headerLogoutText}>Logout</Text>
           </TouchableOpacity>
         </View>
 
@@ -185,17 +189,6 @@ export default function MyAccountScreen() {
           </View>
         </View>
 
-        {/* Logout Button */}
-        <View style={styles.logoutSection}>
-          <TouchableOpacity 
-            style={styles.logoutButton}
-            onPress={handleLogout}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.logoutButtonText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-
       </ScrollView>
     </View>
   );
@@ -222,14 +215,14 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     lineHeight: Typography.lineHeight.xxl,
   },
-  logoutButton: {
+  headerLogoutButton: {
     borderWidth: 1,
     borderColor: Colors.error,
     borderRadius: 8,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.lg,
   },
-  logoutText: {
+  headerLogoutText: {
     color: Colors.error,
     fontSize: Typography.fontSize.md,
     fontFamily: Typography.fontFamily.medium,
@@ -547,20 +540,5 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: Typography.lineHeight.sm,
     textAlign: 'center',
-  },
-  logoutSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.xl,
-  },
-  logoutButton: {
-    backgroundColor: Colors.error,
-    borderRadius: 12,
-    padding: Spacing.lg,
-    alignItems: 'center',
-  },
-  logoutButtonText: {
-    color: Colors.background,
-    fontSize: Typography.fontSize.lg,
-    fontFamily: Typography.fontFamily.bold,
   },
 });
