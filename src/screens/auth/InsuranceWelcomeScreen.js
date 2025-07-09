@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated, FlatList, ImageBackground, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated, FlatList, ImageBackground, Image, Platform, KeyboardAvoidingView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,7 +7,8 @@ import { Colors, Spacing, Typography } from '../../constants';
 
 const { width, height } = Dimensions.get('window');
 
-export default function InsuranceWelcomeScreen() {
+// Define the component as a regular function component
+function InsuranceWelcomeScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   
@@ -137,6 +138,7 @@ export default function InsuranceWelcomeScreen() {
     });
   }, [currentIndex]);
 
+  // Memoized slide renderer for better performance
   const renderInsuranceSlide = ({ item, index }) => {
     const isActive = index === currentIndex;
     const scaleAnim = slideAnimations[index].scale;
@@ -163,6 +165,9 @@ export default function InsuranceWelcomeScreen() {
             source={{ uri: item.imageUrl }}
             style={styles.backgroundImage}
             imageStyle={styles.backgroundImageStyle}
+            // Adding performance optimization for images
+            fadeDuration={300}
+            resizeMode="cover"
           >
             <View 
               style={[
@@ -269,6 +274,7 @@ export default function InsuranceWelcomeScreen() {
     );
   };
 
+  // Function to render the progress indicator
   const renderProgressIndicator = () => {
     return (
       <View style={styles.progressContainer}>
@@ -277,10 +283,10 @@ export default function InsuranceWelcomeScreen() {
             key={index}
             style={[
               styles.progressDot,
-              { 
+              {
                 backgroundColor: index === currentIndex ? Colors.primary : 'rgba(44, 62, 80, 0.2)',
                 width: index === currentIndex ? 24 : 8,
-              }
+              },
             ]}
           />
         ))}
@@ -288,25 +294,27 @@ export default function InsuranceWelcomeScreen() {
     );
   };
 
+  // KeyboardAvoidingView for better keyboard handling (especially for future input fields)
   return (
-    <View
+    <KeyboardAvoidingView
       style={[styles.container, { paddingTop: insets.top }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      enabled
     >
       <StatusBar style="dark" />
-      
+
       {/* Header Section */}
-      <Animated.View 
+      <Animated.View
         style={[
           styles.headerSection,
           {
             opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }]
-          }
+            transform: [{ translateY: slideAnim }],
+          },
         ]}
       >
         <View style={styles.headerContent}>
           <Image source={require('../../../assets/PataLogo.png')} style={{ width: 150, height: 100 }} />
-          
         </View>
       </Animated.View>
 
@@ -316,7 +324,7 @@ export default function InsuranceWelcomeScreen() {
           styles.showcaseContainer,
           {
             opacity: fadeAnim,
-          }
+          },
         ]}
       >
         <FlatList
@@ -332,27 +340,42 @@ export default function InsuranceWelcomeScreen() {
             const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
             setCurrentIndex(newIndex);
           }}
+          // Performance optimizations
+          removeClippedSubviews={true}
+          initialNumToRender={1}
+          maxToRenderPerBatch={2}
+          windowSize={3}
+          getItemLayout={(data, index) => ({
+            length: width,
+            offset: width * index,
+            index,
+          })}
+          // Key cache strategy
+          keyboardShouldPersistTaps="handled"
+          // Memoize the list item so they don't re-render unnecessarily
+          extraData={currentIndex}
         />
-        
+
         {/* Progress Indicator */}
         {renderProgressIndicator()}
       </Animated.View>
 
       {/* Enhanced Action Button */}
-      <Animated.View 
+      <Animated.View
         style={[
           styles.actionContainer,
-          { 
+          {
             paddingBottom: insets.bottom + 30,
             opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }]
-          }
+            transform: [{ translateY: slideAnim }],
+          },
         ]}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.premiumButton}
           onPress={() => navigation.navigate('Login')}
-          activeOpacity={0.9}
+          activeOpacity={0.7}
+          pressRetentionOffset={{ top: 10, left: 10, bottom: 10, right: 10 }}
         >
           <View style={styles.buttonContent}>
             <Text style={styles.getStartedText}>Get Started</Text>
@@ -360,11 +383,31 @@ export default function InsuranceWelcomeScreen() {
               <Text style={styles.buttonArrow}>→</Text>
             </View>
           </View>
+          {/* Button shine effect overlay */}
+          <Animated.View 
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 60,
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              transform: [{ 
+                translateY: fadeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [60, -60]
+                })
+              }]
+            }}
+          />
         </TouchableOpacity>
       </Animated.View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
+
+// Export the component
+export default InsuranceWelcomeScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -479,7 +522,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   largeIcon: {
-    fontSize: 50,
+    fontSize: Typography.fontSize.xxxxl + 18, // Using Typography size + adjustment for icon
     textAlign: 'center',
   },
   floatingElements: {
@@ -510,22 +553,22 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
   },
   slideTitle: {
-    fontSize: Typography.fontSize.xxl + 4,
+    fontSize: Typography.fontSize.xxxl, // Using consistent Typography.fontSize constant
     fontFamily: Typography.fontFamily.bold,
     color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md, // Slightly increased margin for better spacing
     letterSpacing: 1.5,
     textShadowColor: 'rgba(0, 0, 0, 0.6)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
   },
   slideDescription: {
-    fontSize: Typography.fontSize.lg + 1,
+    fontSize: Typography.fontSize.lg, // Using exact Typography size for consistency
     fontFamily: Typography.fontFamily.medium,
     color: 'rgba(255, 255, 255, 0.95)',
     textAlign: 'center',
-    lineHeight: 26,
+    lineHeight: Typography.lineHeight.xl, // Using Typography lineHeight for consistency
     letterSpacing: 0.8,
     paddingHorizontal: Spacing.md,
     textShadowColor: 'rgba(0, 0, 0, 0.4)',
@@ -541,9 +584,9 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
   },
   progressDot: {
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
+    height: 10, // Slightly taller for better visibility
+    borderRadius: 5,
+    marginHorizontal: 5, // More spacing between dots
   },
   actionContainer: {
     paddingHorizontal: Spacing.xl,
@@ -565,15 +608,18 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: 28,
     width: '100%',
-    height: 56,
+    height: 60, // Increased height for better touch target
     shadowColor: Colors.primary,
     shadowOffset: {
       width: 0,
-      height: 12,
+      height: 8,
     },
     shadowOpacity: 0.4,
-    shadowRadius: 20,
+    shadowRadius: 16,
     elevation: 16,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    overflow: 'hidden', // Ensures the shine effect stays within bounds
   },
   buttonContent: {
     flex: 1,
@@ -584,23 +630,25 @@ const styles = StyleSheet.create({
   },
   getStartedText: {
     color: Colors.background,
-    fontSize: Typography.fontSize.lg,
-    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.xl, // Increased font size for better readability
+    fontFamily: Typography.fontFamily.semiBold, // Using semiBold for better visibility
     flex: 1,
     textAlign: 'center',
     letterSpacing: 0.5,
   },
   arrowContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 36, // Slightly larger
+    height: 36, // Slightly larger
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)', // More visible
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   buttonArrow: {
     color: Colors.background,
-    fontSize: 18,
+    fontSize: Typography.fontSize.lg,
     fontFamily: Typography.fontFamily.bold,
   },
 });

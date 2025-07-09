@@ -133,7 +133,12 @@ export default function SignupScreen() {
               placeholderTextColor={Colors.textSecondary}
             />
           </View>
-
+ <View style={styles.signInContainer}>
+            <Text style={styles.signInText}>Have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.signInLink}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity 
             style={[styles.signUpButton, { opacity: isLoading ? 0.7 : 1 }]}
             onPress={handleSignup}
@@ -151,12 +156,7 @@ export default function SignupScreen() {
             </Text>
           </View>
 
-          <View style={styles.signInContainer}>
-            <Text style={styles.signInText}>Have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.signInLink}>Sign In</Text>
-            </TouchableOpacity>
-          </View>
+         
         </View>
 
       </ScrollView>
