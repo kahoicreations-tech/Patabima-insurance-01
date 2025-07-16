@@ -8,7 +8,9 @@ const CompactCurvedHeader = ({
   subtitle, 
   rightComponent,
   backgroundColor = Colors.primary,
-  height = 90
+  height = 90,
+  onBackPress,
+  showBackButton = false
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -31,6 +33,16 @@ const CompactCurvedHeader = ({
           height: height
         }
       ]}>
+        {/* Back Button */}
+        {showBackButton && onBackPress && (
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={onBackPress}
+          >
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
+        )}
+        
         {/* Header Content */}
         <View style={styles.headerContent}>
           {title && (
@@ -102,6 +114,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: Spacing.md,
     top: Spacing.md,
+  },
+  backButton: {
+    position: 'absolute',
+    left: Spacing.md,
+    top: Spacing.md,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: Typography.fontSize.xl,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.background,
   },
 });
 

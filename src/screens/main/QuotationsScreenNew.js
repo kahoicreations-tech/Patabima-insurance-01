@@ -2,19 +2,265 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, TextInput, Alert, Share, RefreshControl } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { Colors, Spacing, Typography } from '../../constants';
 import { QuoteStorageService, PricingService } from '../../services';
 import { PDFService, PaymentService } from '../../services';
 import { SafeScreen, EnhancedCard, StatusBadge, ActionButton, SkeletonCard, CompactCurvedHeader } from '../../components';
 
+// Sample quotation data
+const sampleQuotations = [
+  {
+    id: 1001,
+    status: 'active',
+    createdAt: '2024-07-10T10:30:00Z',
+    vehicleDetails: {
+      make: 'Toyota',
+      model: 'Camry',
+      year: '2022',
+      registrationNumber: 'KCA 456B',
+      engineNumber: 'ENG123456',
+      chassisNumber: 'CHS789012'
+    },
+    coverageDetails: {
+      type: 'Comprehensive',
+      period: '12 months',
+      startDate: '2024-07-15',
+      endDate: '2025-07-15'
+    },
+    calculatedPremium: {
+      basicPremium: 85000,
+      totalPremium: 95000,
+      taxes: 8000,
+      discount: 0
+    },
+    clientInfo: {
+      name: 'John Kamau',
+      phone: '+254712345678',
+      email: 'john.kamau@email.com'
+    }
+  },
+  {
+    id: 1002,
+    status: 'draft',
+    createdAt: '2024-07-12T14:15:00Z',
+    vehicleDetails: {
+      make: 'Nissan',
+      model: 'X-Trail',
+      year: '2021',
+      registrationNumber: 'KDB 789C',
+      engineNumber: 'ENG234567',
+      chassisNumber: 'CHS890123'
+    },
+    coverageDetails: {
+      type: 'Third Party',
+      period: '12 months',
+      startDate: '2024-07-20',
+      endDate: '2025-07-20'
+    },
+    calculatedPremium: {
+      basicPremium: 25000,
+      totalPremium: 28000,
+      taxes: 2500,
+      discount: 0
+    },
+    clientInfo: {
+      name: 'Mary Wanjiku',
+      phone: '+254723456789',
+      email: 'mary.wanjiku@email.com'
+    }
+  },
+  {
+    id: 1003,
+    status: 'paid',
+    createdAt: '2024-07-08T09:45:00Z',
+    vehicleDetails: {
+      make: 'Honda',
+      model: 'Civic',
+      year: '2020',
+      registrationNumber: 'KBZ 321A',
+      engineNumber: 'ENG345678',
+      chassisNumber: 'CHS901234'
+    },
+    coverageDetails: {
+      type: 'Comprehensive',
+      period: '12 months',
+      startDate: '2024-07-10',
+      endDate: '2025-07-10'
+    },
+    calculatedPremium: {
+      basicPremium: 75000,
+      totalPremium: 82000,
+      taxes: 6500,
+      discount: 500
+    },
+    clientInfo: {
+      name: 'Peter Mwangi',
+      phone: '+254734567890',
+      email: 'peter.mwangi@email.com'
+    }
+  },
+  {
+    id: 1004,
+    status: 'applied',
+    createdAt: '2024-07-14T16:20:00Z',
+    vehicleDetails: {
+      make: 'Mazda',
+      model: 'CX-5',
+      year: '2023',
+      registrationNumber: 'KCB 654D',
+      engineNumber: 'ENG456789',
+      chassisNumber: 'CHS012345'
+    },
+    coverageDetails: {
+      type: 'Comprehensive',
+      period: '12 months',
+      startDate: '2024-07-25',
+      endDate: '2025-07-25'
+    },
+    calculatedPremium: {
+      basicPremium: 120000,
+      totalPremium: 135000,
+      taxes: 12000,
+      discount: 3000
+    },
+    clientInfo: {
+      name: 'Grace Njeri',
+      phone: '+254745678901',
+      email: 'grace.njeri@email.com'
+    }
+  },
+  {
+    id: 1005,
+    status: 'draft',
+    createdAt: '2024-07-16T11:00:00Z',
+    vehicleDetails: {
+      make: 'Subaru',
+      model: 'Forester',
+      year: '2019',
+      registrationNumber: 'KDD 987E',
+      engineNumber: 'ENG567890',
+      chassisNumber: 'CHS123456'
+    },
+    coverageDetails: {
+      type: 'Third Party',
+      period: '12 months',
+      startDate: '2024-07-30',
+      endDate: '2025-07-30'
+    },
+    calculatedPremium: {
+      basicPremium: 30000,
+      totalPremium: 33500,
+      taxes: 3000,
+      discount: 0
+    },
+    clientInfo: {
+      name: 'Samuel Kiprotich',
+      phone: '+254756789012',
+      email: 'samuel.kiprotich@email.com'
+    }
+  },
+  {
+    id: 1006,
+    status: 'active',
+    createdAt: '2024-07-06T13:30:00Z',
+    vehicleDetails: {
+      make: 'Mitsubishi',
+      model: 'Outlander',
+      year: '2021',
+      registrationNumber: 'KAA 123F',
+      engineNumber: 'ENG678901',
+      chassisNumber: 'CHS234567'
+    },
+    coverageDetails: {
+      type: 'Comprehensive',
+      period: '12 months',
+      startDate: '2024-07-08',
+      endDate: '2025-07-08'
+    },
+    calculatedPremium: {
+      basicPremium: 95000,
+      totalPremium: 105000,
+      taxes: 9000,
+      discount: 1000
+    },
+    clientInfo: {
+      name: 'Linda Akinyi',
+      phone: '+254767890123',
+      email: 'linda.akinyi@email.com'
+    }
+  },
+  {
+    id: 1007,
+    status: 'paid',
+    createdAt: '2024-07-11T15:45:00Z',
+    vehicleDetails: {
+      make: 'Volkswagen',
+      model: 'Tiguan',
+      year: '2022',
+      registrationNumber: 'KBA 456G',
+      engineNumber: 'ENG789012',
+      chassisNumber: 'CHS345678'
+    },
+    coverageDetails: {
+      type: 'Comprehensive',
+      period: '12 months',
+      startDate: '2024-07-12',
+      endDate: '2025-07-12'
+    },
+    calculatedPremium: {
+      basicPremium: 110000,
+      totalPremium: 125000,
+      taxes: 11000,
+      discount: 4000
+    },
+    clientInfo: {
+      name: 'David Ochieng',
+      phone: '+254778901234',
+      email: 'david.ochieng@email.com'
+    }
+  },
+  {
+    id: 1008,
+    status: 'applied',
+    createdAt: '2024-07-13T12:15:00Z',
+    vehicleDetails: {
+      make: 'Ford',
+      model: 'Explorer',
+      year: '2020',
+      registrationNumber: 'KCZ 789H',
+      engineNumber: 'ENG890123',
+      chassisNumber: 'CHS456789'
+    },
+    coverageDetails: {
+      type: 'Third Party',
+      period: '12 months',
+      startDate: '2024-07-18',
+      endDate: '2025-07-18'
+    },
+    calculatedPremium: {
+      basicPremium: 35000,
+      totalPremium: 38500,
+      taxes: 3200,
+      discount: 0
+    },
+    clientInfo: {
+      name: 'Catherine Wambui',
+      phone: '+254789012345',
+      email: 'catherine.wambui@email.com'
+    }
+  }
+];
+
 export default function QuotationsScreenNew() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [quotes, setQuotes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [quotes, setQuotes] = useState(sampleQuotations);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedQuote, setExpandedQuote] = useState(null);
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
 
   const filters = ['All', 'Draft', 'Applied', 'Paid', 'Active'];
 
@@ -26,11 +272,25 @@ export default function QuotationsScreenNew() {
   const loadQuotes = async () => {
     try {
       setLoading(true);
-      const allQuotes = await QuoteStorageService.getAllQuotes();
-      setQuotes(allQuotes);
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Try to load from storage service, fallback to sample data
+      try {
+        const storedQuotes = await QuoteStorageService.getAllQuotes();
+        if (storedQuotes && storedQuotes.length > 0) {
+          setQuotes(storedQuotes);
+        } else {
+          setQuotes(sampleQuotations);
+        }
+      } catch (error) {
+        console.log('Using sample data');
+        setQuotes(sampleQuotations);
+      }
     } catch (error) {
       console.error('Error loading quotes:', error);
       Alert.alert('Error', 'Failed to load quotes');
+      setQuotes(sampleQuotations); // Fallback to sample data
     } finally {
       setLoading(false);
     }
@@ -65,17 +325,45 @@ export default function QuotationsScreenNew() {
     );
   };
 
-  const handleShareQuote = async (quote) => {
-    try {
-      const message = `🏆 PataBima Insurance Quote\n\n📋 Quote Details:\n• Vehicle: ${quote.vehicleDetails?.make} ${quote.vehicleDetails?.model}\n• Registration: ${quote.vehicleDetails?.registrationNumber}\n• Premium: ${PricingService.formatCurrency(quote.calculatedPremium?.totalPremium || 0)}\n• Status: ${quote.status}\n\n💪 Get insured with PataBima!`;
-      
-      await Share.share({
-        message: message,
-        title: 'PataBima Insurance Quote'
-      });
-    } catch (error) {
-      console.error('Error sharing quote:', error);
-    }
+  const handleQuoteSupport = (quote) => {
+    Alert.alert(
+      'Quote Support',
+      `Need help with your quote for ${quote.vehicleDetails?.make} ${quote.vehicleDetails?.model}?\n\nOur support team is ready to assist you with:\n• Quote modifications\n• Coverage questions\n• Payment assistance\n• Policy details\n\nWould you like to contact support?`,
+      [
+        { text: 'Maybe Later', style: 'cancel' },
+        { text: 'Contact Support', onPress: () => {
+          Alert.alert('Contact Support', 'Our support team will contact you within 2 hours during business hours.');
+        }}
+      ]
+    );
+  };
+
+  const handleEditQuote = (quote) => {
+    Alert.alert(
+      'Edit Quote',
+      `Edit quote for ${quote.vehicleDetails?.registrationNumber}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Edit', onPress: () => {
+          // Navigate to edit quote screen
+          console.log('Navigate to edit quote:', quote.id);
+        }}
+      ]
+    );
+  };
+
+  const handleCreateNewQuote = () => {
+    Alert.alert(
+      'Get a Quote',
+      'Navigate to insurance categories to start creating a new quote?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Get Quote', onPress: () => {
+          // Navigate to Home screen where users can choose insurance categories
+          navigation.navigate('Home');
+        }}
+      ]
+    );
   };
 
   const filteredQuotes = quotes.filter(quote => {
@@ -144,17 +432,43 @@ export default function QuotationsScreenNew() {
             </View>
             <View style={styles.detailItem}>
               <Text style={styles.detailLabel}>Period</Text>
-              <Text style={styles.detailValue}>12 months</Text>
+              <Text style={styles.detailValue}>
+                {quote.coverageDetails?.period || '12 months'}
+              </Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Client</Text>
+              <Text style={styles.detailValue}>
+                {quote.clientInfo?.name || 'N/A'}
+              </Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Phone</Text>
+              <Text style={styles.detailValue}>
+                {quote.clientInfo?.phone || 'N/A'}
+              </Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Basic Premium</Text>
+              <Text style={styles.detailValue}>
+                {PricingService.formatCurrency(quote.calculatedPremium?.basicPremium || 0)}
+              </Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Taxes</Text>
+              <Text style={styles.detailValue}>
+                {PricingService.formatCurrency(quote.calculatedPremium?.taxes || 0)}
+              </Text>
             </View>
           </View>
 
           <View style={styles.actionButtons}>
             <ActionButton
-              title="Share"
-              icon="📤"
-              variant="secondary"
+              title="Support"
+              icon="�"
+              variant="primary"
               size="small"
-              onPress={() => handleShareQuote(quote)}
+              onPress={() => handleQuoteSupport(quote)}
               style={styles.actionButtonSmall}
             />
             <ActionButton
@@ -162,7 +476,7 @@ export default function QuotationsScreenNew() {
               icon="✏️"
               variant="secondary"
               size="small"
-              onPress={() => {}}
+              onPress={() => handleEditQuote(quote)}
               style={styles.actionButtonSmall}
             />
             <ActionButton
@@ -185,7 +499,7 @@ export default function QuotationsScreenNew() {
       <Text style={styles.emptyTitle}>No quotes found</Text>
       <Text style={styles.emptySubtitle}>
         {activeFilter === 'All' 
-          ? 'Create your first quote to get started'
+          ? 'Tap the + button to get your first quote'
           : `No ${activeFilter.toLowerCase()} quotes available`
         }
       </Text>
@@ -292,10 +606,16 @@ export default function QuotationsScreenNew() {
               <Text style={styles.statLabel}>Active</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={[styles.statValue, { color: Colors.warning }]}>
-                {quotes.filter(q => q.status === 'pending').length}
+              <Text style={[styles.statValue, { color: Colors.primary }]}>
+                {quotes.filter(q => q.status === 'paid').length}
               </Text>
-              <Text style={styles.statLabel}>Pending</Text>
+              <Text style={styles.statLabel}>Paid</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={[styles.statValue, { color: Colors.warning }]}>
+                {quotes.filter(q => q.status === 'draft').length}
+              </Text>
+              <Text style={styles.statLabel}>Draft</Text>
             </View>
           </View>
         </View>
@@ -318,6 +638,14 @@ export default function QuotationsScreenNew() {
           />
         )}
       </ScrollView>
+      
+      {/* Floating Action Button */}
+      <TouchableOpacity 
+        style={[styles.fab, { bottom: insets.bottom + 20 }]}
+        onPress={() => handleCreateNewQuote()}
+      >
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
     </SafeScreen>
   );
 }
@@ -513,10 +841,12 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     flexDirection: 'row',
-    gap: Spacing.sm,
+    gap: Spacing.xs,
+    flexWrap: 'wrap',
   },
   actionButtonSmall: {
     flex: 1,
+    minWidth: '30%',
   },
   emptyState: {
     alignItems: 'center',
@@ -539,5 +869,27 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: Typography.lineHeight.md,
+  },
+  fab: {
+    position: 'absolute',
+    right: Spacing.md,
+    backgroundColor: Colors.primary,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: Colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  fabIcon: {
+    fontSize: 24,
+    color: '#FFFFFF',
   },
 });

@@ -157,28 +157,50 @@ export default function HomeScreen() {
       category: 'Vehicle',
       policyNo: 'POL-001234',
       status: 'Processed',
-      amount: 'KES 45,000'
+      amount: 'KES 45,000',
+      claimNo: 'CLM-001234',
+      vehicleReg: 'KCD 123A',
+      claimDate: '2025-06-28',
+      submissionDate: '2025-06-28',
+      description: 'Vehicle accident claim - Front bumper damage due to collision at parking lot. Minor scratches and dents observed.',
+      documents: ['Police Report', 'Vehicle Registration', 'Photos of Damage', 'Repair Estimate']
     },
     {
       id: 2,
       category: 'Medical',
       policyNo: 'POL-002345',
       status: 'Pending',
-      amount: 'KES 12,500'
+      amount: 'KES 12,500',
+      claimNo: 'CLM-002345',
+      claimDate: '2025-07-01',
+      submissionDate: '2025-07-01',
+      description: 'Medical claim for outpatient treatment - Consultation and medication for respiratory infection.',
+      documents: ['Medical Report', 'Prescription', 'Hospital Receipt']
     },
     {
       id: 3,
       category: 'WIBA',
       policyNo: 'POL-003456',
       status: 'Processed',
-      amount: 'KES 28,750'
+      amount: 'KES 28,750',
+      claimNo: 'CLM-003456',
+      claimDate: '2025-06-25',
+      submissionDate: '2025-06-25',
+      description: 'Work injury claim - Slip and fall incident at workplace resulting in minor injury requiring physiotherapy.',
+      documents: ['Incident Report', 'Medical Certificate', 'Physiotherapy Report', 'Employer Statement']
     },
     {
       id: 4,
       category: 'Vehicle',
       policyNo: 'POL-004567',
       status: 'Pending',
-      amount: 'KES 67,200'
+      amount: 'KES 67,200',
+      claimNo: 'CLM-004567',
+      vehicleReg: 'KBZ 456B',
+      claimDate: '2025-07-03',
+      submissionDate: '2025-07-03',
+      description: 'Vehicle theft claim - Complete vehicle theft from secured parking area. Police report filed and case under investigation.',
+      documents: ['Police Report', 'Vehicle Registration', 'Insurance Certificate', 'Key Replacement Report']
     }
   ];
 
@@ -423,10 +445,13 @@ export default function HomeScreen() {
               <Text style={styles.upcomingLabel}>Extensions</Text>
             </View>
             <View style={styles.upcomingDivider} />
-            <View style={styles.upcomingItem}>
+            <TouchableOpacity 
+              style={styles.upcomingItem}
+              onPress={() => navigation.navigate('Upcoming')}
+            >
               <Text style={styles.upcomingCount}>{claimsData.filter(c => c.status === 'Pending').length}</Text>
               <Text style={styles.upcomingLabel}>Claims</Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
           {/* Preview Card */}
@@ -441,11 +466,8 @@ export default function HomeScreen() {
                   mostUrgentItem.type === 'extension' && styles.extensionPreviewCard
                 ]}
                 onPress={() => {
-                  if (mostUrgentItem.type === 'extension') {
-                    navigation.navigate('Extension', { policy: mostUrgentItem });
-                  } else {
-                    navigation.navigate('Renewal', { policy: mostUrgentItem });
-                  }
+                  // Navigate to the Upcoming tab first
+                  navigation.navigate('Upcoming');
                 }}
                 elevated={true}
               >

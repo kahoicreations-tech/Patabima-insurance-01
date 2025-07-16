@@ -7,3 +7,4 @@ export { default as ClaimsScreenNew } from './ClaimsScreenNew';
 export { default as RenewalScreen } from './RenewalScreen';
 export { default as ClaimDetailsScreen } from './ClaimDetailsScreen';
 export { default as ExtensionScreen } from './ExtensionScreen';
+export { default as ClaimsSubmissionScreen } from './ClaimsSubmissionScreen';

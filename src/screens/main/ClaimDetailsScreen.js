@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography } from '../../constants';
@@ -29,12 +29,36 @@ export default function ClaimDetailsScreen({ navigation, route }) {
   
   const handleContactSupport = () => {
     // Implement contact support functionality
-    navigation.navigate('Support', { claimNo: claim.claimNo });
+    Alert.alert(
+      'Contact Support',
+      'Support feature will be available soon. For immediate assistance, please call our support hotline at +254 700 000 000.',
+      [{ text: 'OK' }]
+    );
   };
   
   const handleTrackClaim = () => {
     // Implement claim tracking functionality
-    navigation.navigate('ClaimTracking', { claimNo: claim.claimNo });
+    Alert.alert(
+      'Track Claim',
+      'Claim tracking feature will be available soon. You can view the current status in the timeline below.',
+      [{ text: 'OK' }]
+    );
+  };
+  
+  const handleAddDocument = () => {
+    Alert.alert(
+      'Add Document',
+      'Document upload feature will be available soon. You can email additional documents to claims@patabima.com.',
+      [{ text: 'OK' }]
+    );
+  };
+  
+  const handleViewDocument = (documentName) => {
+    Alert.alert(
+      'View Document',
+      `Opening ${documentName}...`,
+      [{ text: 'OK' }]
+    );
   };
   
   return (
@@ -108,30 +132,42 @@ export default function ClaimDetailsScreen({ navigation, route }) {
           <View style={styles.divider} />
           
           <Text style={styles.descriptionLabel}>Description</Text>
-          <Text style={styles.descriptionText}>{claim.description}</Text>
+          <Text style={styles.descriptionText}>{claim.description || 'No description provided'}</Text>
         </EnhancedCard>
         
         {/* Documents Card */}
         <EnhancedCard style={styles.detailCard}>
           <Text style={styles.sectionTitle}>Submitted Documents</Text>
           
-          {claim.documents.map((doc, index) => (
-            <View key={index} style={styles.documentItem}>
-              <View style={styles.documentIconContainer}>
-                <Text style={styles.documentIcon}>📄</Text>
+          {claim.documents && claim.documents.length > 0 ? (
+            claim.documents.map((doc, index) => (
+              <View key={index} style={styles.documentItem}>
+                <View style={styles.documentIconContainer}>
+                  <Text style={styles.documentIcon}>📄</Text>
+                </View>
+                <View style={styles.documentInfo}>
+                  <Text style={styles.documentName}>{doc}</Text>
+                  <Text style={styles.documentStatus}>Verified</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.documentViewButton}
+                  onPress={() => handleViewDocument(doc)}
+                >
+                  <Text style={styles.documentViewText}>View</Text>
+                </TouchableOpacity>
               </View>
-              <View style={styles.documentInfo}>
-                <Text style={styles.documentName}>{doc}</Text>
-                <Text style={styles.documentStatus}>Verified</Text>
-              </View>
-              <TouchableOpacity style={styles.documentViewButton}>
-                <Text style={styles.documentViewText}>View</Text>
-              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.noDocumentsContainer}>
+              <Text style={styles.noDocumentsText}>No documents submitted</Text>
             </View>
-          ))}
+          )}
           
           {claim.status === 'Pending' && (
-            <TouchableOpacity style={styles.addDocumentButton}>
+            <TouchableOpacity 
+              style={styles.addDocumentButton}
+              onPress={handleAddDocument}
+            >
               <Text style={styles.addDocumentButtonText}>Add Document</Text>
             </TouchableOpacity>
           )}
@@ -450,5 +486,17 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     fontFamily: Typography.fontFamily.semiBold,
     color: Colors.white,
+  },
+  noDocumentsContainer: {
+    padding: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 60,
+  },
+  noDocumentsText: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
 });

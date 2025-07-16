@@ -17,7 +17,8 @@ import {
   LastExpenseQuotationScreen,
   RenewalScreen,
   ClaimDetailsScreen,
-  ExtensionScreen
+  ExtensionScreen,
+  ClaimsSubmissionScreen
 } from '../screens';
 import SplashScreen from '../screens/auth/SplashScreen';
 import InsuranceWelcomeScreen from '../screens/auth/InsuranceWelcomeScreen';
@@ -177,6 +178,7 @@ function HomeStack() {
       <Stack.Screen name="Renewal" component={RenewalScreen} />
       <Stack.Screen name="ClaimDetails" component={ClaimDetailsScreen} />
       <Stack.Screen name="Extension" component={ExtensionScreen} />
+      <Stack.Screen name="ClaimsSubmission" component={ClaimsSubmissionScreen} />
     </Stack.Navigator>
   );
 }
@@ -189,6 +191,7 @@ function UpcomingStack() {
       <Stack.Screen name="Renewal" component={RenewalScreen} />
       <Stack.Screen name="ClaimDetails" component={ClaimDetailsScreen} />
       <Stack.Screen name="Extension" component={ExtensionScreen} />
+      <Stack.Screen name="ClaimsSubmission" component={ClaimsSubmissionScreen} />
     </Stack.Navigator>
   );
 }

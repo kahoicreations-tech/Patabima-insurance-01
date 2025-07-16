@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, RefreshControl, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography } from '../../constants';
@@ -67,7 +67,9 @@ export default function UpcomingScreen({ navigation }) {
       status: 'Processed',
       amount: 'KES 45,000',
       claimDate: '2025-06-28',
-      submissionDate: '2025-06-28'
+      submissionDate: '2025-06-28',
+      description: 'Vehicle accident claim - Front bumper damage due to collision at parking lot. Minor scratches and dents observed.',
+      documents: ['Police Report', 'Vehicle Registration', 'Photos of Damage', 'Repair Estimate']
     },
     {
       id: 2,
@@ -77,7 +79,9 @@ export default function UpcomingScreen({ navigation }) {
       status: 'Pending',
       amount: 'KES 12,500',
       claimDate: '2025-07-01',
-      submissionDate: '2025-07-01'
+      submissionDate: '2025-07-01',
+      description: 'Medical claim for outpatient treatment - Consultation and medication for respiratory infection.',
+      documents: ['Medical Report', 'Prescription', 'Hospital Receipt']
     },
     {
       id: 3,
@@ -87,7 +91,9 @@ export default function UpcomingScreen({ navigation }) {
       status: 'Processed',
       amount: 'KES 28,750',
       claimDate: '2025-06-25',
-      submissionDate: '2025-06-25'
+      submissionDate: '2025-06-25',
+      description: 'Work injury claim - Slip and fall incident at workplace resulting in minor injury requiring physiotherapy.',
+      documents: ['Incident Report', 'Medical Certificate', 'Physiotherapy Report', 'Employer Statement']
     },
     {
       id: 4,
@@ -98,7 +104,9 @@ export default function UpcomingScreen({ navigation }) {
       status: 'Pending',
       amount: 'KES 67,200',
       claimDate: '2025-07-03',
-      submissionDate: '2025-07-03'
+      submissionDate: '2025-07-03',
+      description: 'Vehicle theft claim - Complete vehicle theft from secured parking area. Police report filed and case under investigation.',
+      documents: ['Police Report', 'Vehicle Registration', 'Insurance Certificate', 'Key Replacement Report']
     }
   ];
 
@@ -232,16 +240,17 @@ export default function UpcomingScreen({ navigation }) {
           </View>
         </View>
         
-        {item.status === 'Pending' && (
-          <ActionButton
-            title="View Details"
-            icon="👁️"
-            variant="secondary"
-            size="small"
-            onPress={() => navigation.navigate('ClaimDetails', { claim: item })}
-            style={styles.actionButton}
-          />
-        )}
+        <ActionButton
+          title={item.status === 'Pending' ? 'View & Track' : 'View Details'}
+          icon="👁️"
+          variant={item.status === 'Pending' ? 'primary' : 'secondary'}
+          size="small"
+          onPress={() => {
+            console.log('Viewing details for claim:', item.claimNo);
+            navigation.navigate('ClaimDetails', { claim: item });
+          }}
+          style={styles.actionButton}
+        />
       </View>
     </EnhancedCard>
   );
@@ -376,6 +385,18 @@ export default function UpcomingScreen({ navigation }) {
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Submit New Claim Button - Only show when Claims tab is active */}
+        {activeTab === 'Claims' && (
+          <View style={styles.submitClaimSection}>
+            <ActionButton
+              title="Submit New Claim"
+              icon="📝"
+              onPress={() => navigation.navigate('ClaimsSubmission')}
+              style={styles.submitClaimButton}
+            />
+          </View>
+        )}
 
         {/* Content */}
         {filteredData.length > 0 ? (
@@ -615,6 +636,12 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: Typography.lineHeight.md,
+  },
+  submitClaimSection: {
+    marginBottom: Spacing.md,
+  },
+  submitClaimButton: {
+    marginHorizontal: 0,
   },
 });
 

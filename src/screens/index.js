@@ -26,7 +26,9 @@ export {
   MyAccountScreen, 
   ClaimsScreenNew,
   RenewalScreen,
-  ClaimDetailsScreen 
+  ClaimDetailsScreen,
+  ExtensionScreen,
+  ClaimsSubmissionScreen 
 } from './main';
 
 // Auth Screens
