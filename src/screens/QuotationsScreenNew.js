@@ -110,7 +110,11 @@ export default function QuotationsScreen() {
   const handleQuoteAction = (quote, action) => {
     switch (action) {
       case 'edit':
-        navigation.navigate('MotorQuotation', { quoteId: quote.id });
+        Alert.alert(
+          'Under Maintenance',
+          'Quote editing is currently under maintenance. We are working to improve your experience and will be back soon!',
+          [{ text: 'OK', style: 'default' }]
+        );
         break;
       case 'convert':
         // Handle conversion to policy

@@ -354,13 +354,16 @@ export default function QuotationsScreenNew() {
 
   const handleCreateNewQuote = () => {
     Alert.alert(
-      'Get a Quote',
-      'Navigate to insurance categories to start creating a new quote?',
+      'Under Maintenance',
+      'Our quotation system is currently under maintenance. We are working to improve your experience and will be back soon!',
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Get Quote', onPress: () => {
-          // Navigate to Home screen where users can choose insurance categories
-          navigation.navigate('Home');
+        { text: 'OK', style: 'default' },
+        { text: 'Get Notified', onPress: () => {
+          Alert.alert(
+            'Notification Set',
+            'You will be notified when the quotation system is available.',
+            [{ text: 'OK' }]
+          );
         }}
       ]
     );
@@ -465,7 +468,7 @@ export default function QuotationsScreenNew() {
           <View style={styles.actionButtons}>
             <ActionButton
               title="Support"
-              icon="�"
+              icon="?"
               variant="primary"
               size="small"
               onPress={() => handleQuoteSupport(quote)}
@@ -473,7 +476,7 @@ export default function QuotationsScreenNew() {
             />
             <ActionButton
               title="Edit"
-              icon="✏️"
+              icon="E"
               variant="secondary"
               size="small"
               onPress={() => handleEditQuote(quote)}
@@ -481,7 +484,7 @@ export default function QuotationsScreenNew() {
             />
             <ActionButton
               title="Delete"
-              icon="🗑️"
+              icon="×"
               variant="outline"
               size="small"
               onPress={() => handleDeleteQuote(quote.id)}
@@ -495,11 +498,11 @@ export default function QuotationsScreenNew() {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyIcon}>📋</Text>
+      <Text style={styles.emptyIcon}>□</Text>
       <Text style={styles.emptyTitle}>No quotes found</Text>
       <Text style={styles.emptySubtitle}>
         {activeFilter === 'All' 
-          ? 'Tap the + button to get your first quote'
+          ? 'Quotation system is under maintenance'
           : `No ${activeFilter.toLowerCase()} quotes available`
         }
       </Text>
@@ -562,7 +565,7 @@ export default function QuotationsScreenNew() {
         {/* Search Bar */}
         <EnhancedCard style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
-            <Text style={styles.searchIcon}>🔍</Text>
+            <Text style={styles.searchIcon}>⌕</Text>
             <TextInput
               style={styles.searchInput}
               placeholder="Search by registration or quote ID..."

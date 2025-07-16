@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography } from '../../constants';
 import { SafeScreen, EnhancedCard, StatCard, StatusBadge, CompactCurvedHeader } from '../../components';
+import { MOCK_AGENT, MOCK_RENEWALS, MOCK_EXTENSIONS, MOCK_CLAIMS } from '../../data/mockData';
 
 export default function HomeScreen() {
   const [currentCampaign, setCurrentCampaign] = useState(0);
@@ -14,11 +15,11 @@ export default function HomeScreen() {
   const categoriesRef = useRef(null);
 
   const mockData = {
-    sales: 125000,
-    production: 85000,
-    commission: 15750,
-    agentCode: 'IA16332',
-    nextPayout: '16th July, 2025'
+    sales: MOCK_AGENT.sales,
+    production: MOCK_AGENT.production,
+    commission: MOCK_AGENT.commission,
+    agentCode: MOCK_AGENT.code,
+    nextPayout: MOCK_AGENT.nextPayout
   };
 
   const insuranceCategories = [
@@ -106,103 +107,11 @@ export default function HomeScreen() {
     }
   ];
 
-  const renewalData = [
-    {
-      id: 1,
-      policyNo: 'POL-001234',
-      vehicleReg: 'KCD 123A',
-      status: 'Due Soon',
-      dueDate: '2025-07-15'
-    },
-    {
-      id: 2,
-      policyNo: 'POL-005678',
-      vehicleReg: 'KBZ 456B',
-      status: 'Overdue',
-      dueDate: '2025-06-30'
-    },
-    {
-      id: 3,
-      policyNo: 'POL-009876',
-      vehicleReg: 'KCA 789C',
-      status: 'Due Soon',
-      dueDate: '2025-07-20'
-    }
-  ];
+  const renewalData = MOCK_RENEWALS;
 
-  const extensionData = [
-    {
-      id: 1,
-      policyNo: 'POL-001234',
-      vehicleReg: 'KCD 123A',
-      status: 'Extension Due',
-      dueDate: '2025-07-18',
-      extensionPeriod: '3 months',
-      reason: 'Awaiting vehicle inspection'
-    },
-    {
-      id: 2,
-      policyNo: 'POL-005678',
-      vehicleReg: 'KBZ 456B',
-      status: 'Extension Due',
-      dueDate: '2025-07-20',
-      extensionPeriod: '1 month',
-      reason: 'Pending documentation'
-    }
-  ];
+  const extensionData = MOCK_EXTENSIONS;
 
-  const claimsData = [
-    {
-      id: 1,
-      category: 'Vehicle',
-      policyNo: 'POL-001234',
-      status: 'Processed',
-      amount: 'KES 45,000',
-      claimNo: 'CLM-001234',
-      vehicleReg: 'KCD 123A',
-      claimDate: '2025-06-28',
-      submissionDate: '2025-06-28',
-      description: 'Vehicle accident claim - Front bumper damage due to collision at parking lot. Minor scratches and dents observed.',
-      documents: ['Police Report', 'Vehicle Registration', 'Photos of Damage', 'Repair Estimate']
-    },
-    {
-      id: 2,
-      category: 'Medical',
-      policyNo: 'POL-002345',
-      status: 'Pending',
-      amount: 'KES 12,500',
-      claimNo: 'CLM-002345',
-      claimDate: '2025-07-01',
-      submissionDate: '2025-07-01',
-      description: 'Medical claim for outpatient treatment - Consultation and medication for respiratory infection.',
-      documents: ['Medical Report', 'Prescription', 'Hospital Receipt']
-    },
-    {
-      id: 3,
-      category: 'WIBA',
-      policyNo: 'POL-003456',
-      status: 'Processed',
-      amount: 'KES 28,750',
-      claimNo: 'CLM-003456',
-      claimDate: '2025-06-25',
-      submissionDate: '2025-06-25',
-      description: 'Work injury claim - Slip and fall incident at workplace resulting in minor injury requiring physiotherapy.',
-      documents: ['Incident Report', 'Medical Certificate', 'Physiotherapy Report', 'Employer Statement']
-    },
-    {
-      id: 4,
-      category: 'Vehicle',
-      policyNo: 'POL-004567',
-      status: 'Pending',
-      amount: 'KES 67,200',
-      claimNo: 'CLM-004567',
-      vehicleReg: 'KBZ 456B',
-      claimDate: '2025-07-03',
-      submissionDate: '2025-07-03',
-      description: 'Vehicle theft claim - Complete vehicle theft from secured parking area. Police report filed and case under investigation.',
-      documents: ['Police Report', 'Vehicle Registration', 'Insurance Certificate', 'Key Replacement Report']
-    }
-  ];
+  const claimsData = MOCK_CLAIMS;
 
   // Helper function to get the most urgent item (renewal or extension)
   const getMostUrgentItem = () => {
@@ -340,15 +249,12 @@ export default function HomeScreen() {
                   currentCategory === index && styles.activeCategoryCard
                 ]}
                 onPress={() => {
-                  if (item.screen) {
-                    navigation.navigate(item.screen);
-                  } else {
-                    Alert.alert(
-                      'Coming Soon',
-                      `${item.name} insurance will be available soon!`,
-                      [{ text: 'OK' }]
-                    );
-                  }
+                  // Show maintenance alert for all insurance categories
+                  Alert.alert(
+                    'Feature Under Development',
+                    `${item.name} insurance is currently under development. We are working to bring you this feature soon!`,
+                    [{ text: 'OK', style: 'default' }]
+                  );
                 }}
                 elevated={true}
                 padding={Spacing.md}

@@ -285,15 +285,21 @@ export default function HomeScreen() {
                   index === currentCategory && styles.activeCategoryCard
                 ]}
                 onPress={() => {
-                  if (item.screen) {
-                    navigation.navigate(item.screen);
-                  } else {
-                    Alert.alert(
-                      'Coming Soon',
-                      `${item.name} insurance will be available soon!`,
-                      [{ text: 'OK' }]
-                    );
-                  }
+                  // Show maintenance alert for all insurance categories
+                  Alert.alert(
+                    'Under Maintenance',
+                    `${item.name} insurance is currently under maintenance. We are working to improve your experience and will be back soon!`,
+                    [
+                      { text: 'OK', style: 'default' },
+                      { text: 'Get Notified', onPress: () => {
+                        Alert.alert(
+                          'Notification Set',
+                          `You will be notified when ${item.name} insurance is available.`,
+                          [{ text: 'OK' }]
+                        );
+                      }}
+                    ]
+                  );
                 }}
               >
                 <View style={[
