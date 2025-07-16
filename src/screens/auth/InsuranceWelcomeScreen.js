@@ -1,654 +1,506 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated, FlatList, ImageBackground, Image, Platform, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Animated, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, Typography } from '../../constants';
 
-const { width, height } = Dimensions.get('window');
-
-// Define the component as a regular function component
-function InsuranceWelcomeScreen() {
+export default function InsuranceWelcomeScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const scrollViewRef = useRef(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const { width } = Dimensions.get('window');
+  const CARD_WIDTH = 320;
+  const CARD_MARGIN = Spacing.md;
+
+  // Insurance slides using only images
+  const insuranceSlides = [
+    { 
+      title: 'Motor Vehicle Insurance',
+      image: require('../../../assets/images/motor.png'),
+    },
+    { 
+      title: 'WIBA Insurance',
+      image: require('../../../assets/images/wiba.png'),
+    },
+    { 
+      title: 'Last Expense Insurance', 
+      image: require('../../../assets/images/funeral.png'),
+    },
+    { 
+      title: 'Health Insurance',
+      image: require('../../../assets/images/health.png'),
+    },
+    {
+      title: 'Travel Insurance',
+      image: require('../../../assets/images/travel-insurance.jpg'),
   
-  const insuranceProducts = [
-    { 
-      id: 1, 
-      name: 'Motor Insurance', 
-      icon: '🚗', 
-      gradient: ['#FF6B6B', '#FF8E53'],
-      description: 'Vehicle protection',
-      imageUrl: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      bgOverlay: 'rgba(255, 107, 107, 0.65)'
     },
-    { 
-      id: 2, 
-      name: 'Medical Cover', 
-      icon: '🏥', 
-      gradient: ['#4ECDC4', '#44A08D'],
-      description: 'Health insurance',
-      imageUrl: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      bgOverlay: 'rgba(78, 205, 196, 0.65)'
+    {
+      title: 'Personal Accident',
+      image: require('../../../assets/images/personal-safety.jpg'),
+     
+      
     },
-    { 
-      id: 3, 
-      name: 'Work Safety', 
-      icon: '👷', 
-      gradient: ['#45B7D1', '#96C93D'],
-      description: 'Workplace protection',
-      imageUrl: 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      bgOverlay: 'rgba(69, 183, 209, 0.65)'
-    },
-    { 
-      id: 4, 
-      name: 'Travel Cover', 
-      icon: '✈️', 
-      gradient: ['#667eea', '#764ba2'],
-      description: 'Journey protection',
-      imageUrl: 'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      bgOverlay: 'rgba(102, 126, 234, 0.65)'
-    },
-    { 
-      id: 5, 
-      name: 'Personal Safety', 
-      icon: '🛡️', 
-      gradient: ['#f093fb', '#f5576c'],
-      description: 'Accident cover',
-      imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      bgOverlay: 'rgba(240, 147, 251, 0.65)'
-    },
-    { 
-      id: 6, 
-      name: 'Home Protection', 
-      icon: '🏠', 
-      gradient: ['#43e97b', '#38f9d7'],
-      description: 'Property cover',
-      imageUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      bgOverlay: 'rgba(67, 233, 123, 0.65)'
-    }
   ];
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef(null);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
+  const [currentSlide, setCurrentSlide] = useState(0);
   
-  // Create animation refs for each slide
-  const slideAnimations = useRef(
-    insuranceProducts.map(() => ({
-      scale: new Animated.Value(0.8),
-      rotate: new Animated.Value(0),
-    }))
-  ).current;
-
+  // Animated value for button pulsation
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  
+  // Pulse animation
   useEffect(() => {
-    // Entrance animation
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Auto-scroll through insurance products
-    const interval = setInterval(() => {
-      setCurrentIndex(prevIndex => {
-        const nextIndex = (prevIndex + 1) % insuranceProducts.length;
-        flatListRef.current?.scrollToIndex({ 
-          index: nextIndex, 
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+  
+  // Header animation
+  const headerAnimation = useRef(new Animated.Value(0)).current;
+  
+  useEffect(() => {
+    Animated.timing(headerAnimation, {
+      toValue: 1,
+      duration: 1200,
+      useNativeDriver: true
+    }).start();
+  }, []);
+  
+  // Auto-scrolling effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (scrollViewRef.current) {
+        const nextSlide = (currentSlide + 1) % insuranceSlides.length;
+        scrollViewRef.current.scrollTo({ 
+          x: nextSlide * CARD_WIDTH + (nextSlide * CARD_MARGIN), 
           animated: true 
         });
-        return nextIndex;
-      });
-    }, 3000); // Change slide every 3 seconds for more dynamic feel
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Handle slide animations when currentIndex changes
-  useEffect(() => {
-    slideAnimations.forEach((anim, index) => {
-      if (index === currentIndex) {
-        // Animate active slide
-        Animated.parallel([
-          Animated.spring(anim.scale, {
-            toValue: 1,
-            tension: 50,
-            friction: 7,
-            useNativeDriver: true,
-          }),
-          Animated.timing(anim.rotate, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      } else {
-        // Reset inactive slides
-        anim.scale.setValue(0.8);
-        anim.rotate.setValue(0);
       }
-    });
-  }, [currentIndex]);
-
-  // Memoized slide renderer for better performance
-  const renderInsuranceSlide = ({ item, index }) => {
-    const isActive = index === currentIndex;
-    const scaleAnim = slideAnimations[index].scale;
-    const rotateAnim = slideAnimations[index].rotate;
-
-    const rotation = rotateAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['0deg', '360deg'],
-    });
+    }, 3000);
     
-    return (
-      <View style={styles.slideContainer}>
-        {/* Background Image with Overlay */}
-        <Animated.View 
-          style={[
-            styles.imageBackground,
-            { 
-              opacity: isActive ? 1 : 0.4,
-              transform: [{ scale: scaleAnim }]
-            }
-          ]}
-        >
-          <ImageBackground
-            source={{ uri: item.imageUrl }}
-            style={styles.backgroundImage}
-            imageStyle={styles.backgroundImageStyle}
-            // Adding performance optimization for images
-            fadeDuration={300}
-            resizeMode="cover"
-          >
-            <View 
-              style={[
-                styles.overlay,
-                { backgroundColor: item.bgOverlay }
-              ]}
-            />
-          </ImageBackground>
-        </Animated.View>
+    return () => clearInterval(timer);
+  }, [currentSlide]);
 
-        {/* Floating Content */}
-        <Animated.View 
-          style={[
-            styles.contentFloat,
-            { 
-              transform: [{ scale: scaleAnim }, { translateY: isActive ? -10 : 0 }]
-            }
-          ]}
-        >
-          {/* Modern Icon Section */}
-          <View style={styles.iconSection}>
-            <Animated.View 
-              style={[
-                styles.modernIconWrapper,
-                { 
-                  transform: [
-                    { scale: isActive ? 1.1 : 0.9 },
-                    { rotate: rotation }
-                  ]
-                }
-              ]}
-            >
-              <View style={styles.iconContainer}>
-                <Text style={styles.largeIcon}>{item.icon}</Text>
-              </View>
-              
-              {/* Animated Ring */}
-              <Animated.View 
-                style={[
-                  styles.animatedRing,
-                  {
-                    opacity: isActive ? 1 : 0,
-                    transform: [{ scale: isActive ? 1.3 : 1 }, { rotate: rotation }]
-                  }
-                ]}
-              />
-            </Animated.View>
-            
-            {/* Premium Floating Elements */}
-            <View style={styles.floatingElements}>
-              {[...Array(6)].map((_, i) => (
-                <Animated.View
-                  key={i}
-                  style={[
-                    styles.floatingElement,
-                    {
-                      backgroundColor: '#FFFFFF',
-                      opacity: isActive ? 0.9 : 0,
-                      transform: [
-                        { 
-                          translateY: isActive ? -25 - (i * 12) : 0,
-                        },
-                        { 
-                          translateX: Math.cos(i * 60 * Math.PI / 180) * (30 + i * 8),
-                        },
-                        {
-                          rotate: `${i * 60}deg`
-                        }
-                      ]
-                    }
-                  ]}
-                />
-              ))}
-            </View>
-          </View>
-
-          {/* Enhanced Content Section */}
-          <View style={styles.contentSection}>
-            <Animated.Text 
-              style={[
-                styles.slideTitle,
-                { 
-                  transform: [{ scale: isActive ? 1.05 : 0.95 }],
-                  opacity: isActive ? 1 : 0.7
-                }
-              ]}
-            >
-              {item.name}
-            </Animated.Text>
-            <Animated.Text 
-              style={[
-                styles.slideDescription,
-                {
-                  opacity: isActive ? 1 : 0.5,
-                  transform: [{ translateY: isActive ? 0 : 10 }]
-                }
-              ]}
-            >
-              {item.description}
-            </Animated.Text>
-          </View>
-        </Animated.View>
-      </View>
-    );
-  };
-
-  // Function to render the progress indicator
-  const renderProgressIndicator = () => {
-    return (
-      <View style={styles.progressContainer}>
-        {insuranceProducts.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.progressDot,
-              {
-                backgroundColor: index === currentIndex ? Colors.primary : 'rgba(44, 62, 80, 0.2)',
-                width: index === currentIndex ? 24 : 8,
-              },
-            ]}
-          />
-        ))}
-      </View>
-    );
-  };
-
-  // KeyboardAvoidingView for better keyboard handling (especially for future input fields)
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { paddingTop: insets.top }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      enabled
-    >
-      <StatusBar style="dark" />
-
-      {/* Header Section */}
-      <Animated.View
+    <View style={styles.container}>
+      <StatusBar style="light" />
+      {/* Curved red header */}
+      <Animated.View 
         style={[
-          styles.headerSection,
+          styles.curvedHeader,
           {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
+            opacity: headerAnimation,
+            transform: [
+              { 
+                translateY: headerAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-50, 0]
+                })
+              }
+            ]
+          }
         ]}
       >
-        <View style={styles.headerContent}>
-          <Image source={require('../../../assets/PataLogo.png')} style={{ width: 150, height: 100 }} />
-        </View>
+        {/* Circular logo container */}
+        <Animated.View 
+          style={[
+            styles.logoContainer,
+            {
+              transform: [
+                { 
+                  scale: headerAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.7, 1]
+                  })
+                },
+                {
+                  rotate: headerAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '360deg']
+                  })
+                }
+              ]
+            }
+          ]}
+        >
+          <Image 
+            source={require('../../../assets/PataLogo.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </Animated.View>
+        
+        <Animated.Text 
+          style={[
+            styles.agencyText,
+            {
+              opacity: headerAnimation,
+              transform: [{
+                translateX: headerAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-100, 0]
+                })
+              }]
+            }
+          ]}
+        >
+          PATA BIMA AGENCY
+        </Animated.Text>
+        
+        <Animated.Text 
+          style={[
+            styles.taglineText,
+            {
+              opacity: headerAnimation,
+              transform: [{
+                translateX: headerAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [100, 0]
+                })
+              }]
+            }
+          ]}
+        >
+          Insurance for Protection
+        </Animated.Text>
       </Animated.View>
 
-      {/* Auto-Sliding Showcase */}
-      <Animated.View
-        style={[
-          styles.showcaseContainer,
-          {
-            opacity: fadeAnim,
-          },
-        ]}
-      >
-        <FlatList
-          ref={flatListRef}
-          data={insuranceProducts}
-          renderItem={renderInsuranceSlide}
-          keyExtractor={(item) => item.id.toString()}
+      {/* Insurance Slides */}
+      <View style={styles.sliderContainer}>
+        <Animated.ScrollView
+          ref={scrollViewRef}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
-          scrollEnabled={false} // Disable manual scrolling for auto-only experience
-          onMomentumScrollEnd={(event) => {
-            const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
-            setCurrentIndex(newIndex);
-          }}
-          // Performance optimizations
-          removeClippedSubviews={true}
-          initialNumToRender={1}
-          maxToRenderPerBatch={2}
-          windowSize={3}
-          getItemLayout={(data, index) => ({
-            length: width,
-            offset: width * index,
-            index,
-          })}
-          // Key cache strategy
-          keyboardShouldPersistTaps="handled"
-          // Memoize the list item so they don't re-render unnecessarily
-          extraData={currentIndex}
-        />
-
-        {/* Progress Indicator */}
-        {renderProgressIndicator()}
-      </Animated.View>
-
-      {/* Enhanced Action Button */}
-      <Animated.View
-        style={[
-          styles.actionContainer,
-          {
-            paddingBottom: insets.bottom + 30,
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.premiumButton}
-          onPress={() => navigation.navigate('Login')}
-          activeOpacity={0.7}
-          pressRetentionOffset={{ top: 10, left: 10, bottom: 10, right: 10 }}
-        >
-          <View style={styles.buttonContent}>
-            <Text style={styles.getStartedText}>Get Started</Text>
-            <View style={styles.arrowContainer}>
-              <Text style={styles.buttonArrow}>→</Text>
-            </View>
-          </View>
-          {/* Button shine effect overlay */}
-          <Animated.View 
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 60,
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
-              transform: [{ 
-                translateY: fadeAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [60, -60]
-                })
-              }]
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            { useNativeDriver: true, listener: (event) => {
+              const slideWidth = CARD_WIDTH + CARD_MARGIN;
+              const offset = event.nativeEvent.contentOffset.x;
+              const slide = Math.min(
+                Math.max(0, Math.round(offset / slideWidth)),
+                insuranceSlides.length - 1
+              );
+              setCurrentSlide(slide);
             }}
-          />
-        </TouchableOpacity>
-      </Animated.View>
-    </KeyboardAvoidingView>
+          )}
+          scrollEventThrottle={16}
+          decelerationRate="fast"
+          snapToInterval={CARD_WIDTH + CARD_MARGIN}
+          contentContainerStyle={{ alignItems: 'center', paddingHorizontal: Spacing.lg }}
+        >
+          {insuranceSlides.map((slide, idx) => {
+            // Calculate input range for animations
+            const inputRange = [
+              (idx - 1) * (CARD_WIDTH + CARD_MARGIN),
+              idx * (CARD_WIDTH + CARD_MARGIN),
+              (idx + 1) * (CARD_WIDTH + CARD_MARGIN)
+            ];
+            
+            // Calculate animation values for scaling and opacity
+            const scale = scrollX.interpolate({
+              inputRange,
+              outputRange: [0.85, 1, 0.85],
+              extrapolate: 'clamp'
+            });
+            
+            const opacity = scrollX.interpolate({
+              inputRange,
+              outputRange: [0.6, 1, 0.6],
+              extrapolate: 'clamp'
+            });
+            
+            // Add rotation for a more dynamic effect
+            const rotate = scrollX.interpolate({
+              inputRange,
+              outputRange: ['-2deg', '0deg', '2deg'],
+              extrapolate: 'clamp'
+            });
+            
+            // Remove elevation animation since we don't want shadows
+            
+            return (
+              <Animated.View 
+                key={idx} 
+                style={[
+                  styles.slideCard,
+                  { 
+                    transform: [
+                      { scale },
+                      { rotate },
+                      { translateY: scrollX.interpolate({
+                          inputRange,
+                          outputRange: [5, -10, 5],
+                          extrapolate: 'clamp'
+                        })
+                      }
+                    ],
+                    opacity
+                  }
+                ]}
+              >
+                <Animated.View style={{
+                  width: 220,
+                  height: 220,
+                  marginBottom: 10,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  transform: [{
+                    translateX: scrollX.interpolate({
+                      inputRange,
+                      outputRange: [width * 0.05, 0, -width * 0.05],
+                      extrapolate: 'clamp'
+                    })
+                  }]
+                }}>
+                  <Image 
+                    source={slide.image}
+                    style={{
+                      width: 220, 
+                      height: 220,
+                      tintColor: slide.tintColor || undefined,
+                      opacity: slide.tintColor ? 0.9 : 1,
+                    }}
+                    resizeMode="contain"
+                  />
+                </Animated.View>
+                <Animated.Text 
+                  style={[
+                    styles.slideTitle,
+                    {
+                      opacity: scrollX.interpolate({
+                        inputRange,
+                        outputRange: [0.5, 1, 0.5],
+                        extrapolate: 'clamp'
+                      }),
+                      transform: [{
+                        translateY: scrollX.interpolate({
+                          inputRange,
+                          outputRange: [10, 0, 10],
+                          extrapolate: 'clamp'
+                        })
+                      }]
+                    }
+                  ]}
+                >
+                  {slide.title}
+                </Animated.Text>
+              </Animated.View>
+            );
+          })}
+        </Animated.ScrollView>
+        {/* Slide Indicators */}
+        <View style={styles.slideIndicators}>
+          {insuranceSlides.map((_, idx) => {
+            const inputRange = [
+              (idx - 1) * (CARD_WIDTH + CARD_MARGIN),
+              idx * (CARD_WIDTH + CARD_MARGIN),
+              (idx + 1) * (CARD_WIDTH + CARD_MARGIN)
+            ];
+            
+            const opacity = scrollX.interpolate({
+              inputRange,
+              outputRange: [0.5, 1, 0.5],
+              extrapolate: 'clamp'
+            });
+            
+            const scale = scrollX.interpolate({
+              inputRange,
+              outputRange: [1, 1.2, 1],
+              extrapolate: 'clamp'
+            });
+            
+            return (
+              <Animated.View
+                key={idx}
+                style={[
+                  styles.indicator, 
+                  { 
+                    opacity,
+                    transform: [
+                      { scale },
+                      { translateY: scrollX.interpolate({
+                          inputRange,
+                          outputRange: [0, -3, 0],
+                          extrapolate: 'clamp'
+                        })
+                      }
+                    ],
+                  },
+                  currentSlide === idx ? styles.activeIndicator : null
+                ]}
+              />
+            );
+          })}
+        </View>
+      </View>
+
+      {/* Get Started Section */}
+      <View style={styles.actionContainer}>
+        <Animated.View
+          style={[
+            {
+              transform: [{ scale: pulseAnim }],
+            }
+          ]}
+        >
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Login')}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={[Colors.primary, '#F52A2A']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.getStartedButton}
+            >
+              <Text style={styles.getStartedButtonText}>
+                Get started
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </View>
   );
 }
-
-// Export the component
-export default InsuranceWelcomeScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background,
   },
-  headerSection: {
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.lg,
+  curvedHeader: {
+    backgroundColor: Colors.primary,
+    paddingTop: 60,
+    paddingBottom: 40,
+    borderBottomLeftRadius: 50,
+    borderBottomRightRadius: 50,
     alignItems: 'center',
   },
-  headerContent: {
+  logoContainer: {
+    width: 100,
+    height: 100,
+    backgroundColor: Colors.background,
+    borderRadius: 50,
+    justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: Spacing.md,
+    shadowColor: Colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  brandName: {
-    fontSize: Typography.fontSize.xxxl + 8,
+  logo: {
+    width: 70,
+    height: 70,
+  },
+  agencyText: {
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.background,
+    marginTop: Spacing.sm,
+    letterSpacing: 2,
+    textAlign: 'center',
+  },
+  taglineText: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.background,
+    marginTop: Spacing.xs,
+    textAlign: 'center',
+    opacity: 0.8,
+  },
+  sliderContainer: {
+    marginTop: Spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slideCard: {
+    width: 320,
+    height: 320,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+    padding: Spacing.md,
+  },
+  slideImage: {
+    width: '100%',
+    height: 800,
+    
+    marginBottom: Spacing.md,
+  },
+  slideTitle: {
+    fontSize: Typography.fontSize.lg,
     fontFamily: Typography.fontFamily.bold,
     color: Colors.primary,
     textAlign: 'center',
-    marginBottom: Spacing.xs,
-    letterSpacing: 1,
-    textShadowColor: 'rgba(213, 34, 43, 0.1)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    marginTop: 0,
+    paddingHorizontal: 10,
   },
-  tagline: {
-    fontSize: Typography.fontSize.lg,
-    fontFamily: Typography.fontFamily.medium,
-    color: '#7F8C8D',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
-  showcaseContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  slideContainer: {
-    width: width,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.xl,
-    position: 'relative',
-  },
-  imageBackground: {
-    position: 'absolute',
-    width: width - (Spacing.xl * 2),
-    height: height * 0.58,
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
-  backgroundImage: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  backgroundImageStyle: {
-    borderRadius: 30,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 30,
-  },
-  contentFloat: {
-    width: width - (Spacing.xl * 2),
-    height: height * 0.58,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.xl * 1.5,
-    zIndex: 2,
-  },
-  iconSection: {
-    flex: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  modernIconWrapper: {
-    width: 140,
-    height: 140,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 15,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 25,
-    elevation: 20,
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-  },
-  animatedRing: {
-    position: 'absolute',
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
-    borderStyle: 'dashed',
-  },
-  largeIcon: {
-    fontSize: Typography.fontSize.xxxxl + 18, // Using Typography size + adjustment for icon
-    textAlign: 'center',
-  },
-  floatingElements: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  floatingElement: {
-    position: 'absolute',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  contentSection: {
-    flex: 1.2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: Spacing.lg,
-  },
-  slideTitle: {
-    fontSize: Typography.fontSize.xxxl, // Using consistent Typography.fontSize constant
-    fontFamily: Typography.fontFamily.bold,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: Spacing.md, // Slightly increased margin for better spacing
-    letterSpacing: 1.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.6)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  slideDescription: {
-    fontSize: Typography.fontSize.lg, // Using exact Typography size for consistency
-    fontFamily: Typography.fontFamily.medium,
-    color: 'rgba(255, 255, 255, 0.95)',
-    textAlign: 'center',
-    lineHeight: Typography.lineHeight.xl, // Using Typography lineHeight for consistency
-    letterSpacing: 0.8,
-    paddingHorizontal: Spacing.md,
-    textShadowColor: 'rgba(0, 0, 0, 0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-    marginBottom: Spacing.md,
-  },
-  progressContainer: {
+
+  slideIndicators: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: Spacing.lg,
-    marginTop: Spacing.md,
+    marginTop: Spacing.sm,
   },
-  progressDot: {
-    height: 10, // Slightly taller for better visibility
-    borderRadius: 5,
-    marginHorizontal: 5, // More spacing between dots
+  indicator: {
+    height: 8,
+    width: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.secondary,
+    marginHorizontal: 4,
+    marginTop: -30,
+    marginBottom: 2,
+  },
+  activeIndicator: {
+    width: 10,
+    backgroundColor: Colors.secondary,  
   },
   actionContainer: {
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xl,
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -5,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 10,
-  },
-  premiumButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 28,
     width: '100%',
-    height: 60, // Increased height for better touch target
+    alignItems: 'center',
+    marginTop: Spacing.xl,
+  },
+  getStartedButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xxl,
+    borderRadius: 12,
+    alignItems: 'center',
     shadowColor: Colors.primary,
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 4,
     },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 16,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    overflow: 'hidden', // Ensures the shine effect stays within bounds
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    minWidth: 180,
   },
-  buttonContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
-  },
-  getStartedText: {
+  getStartedButtonText: {
     color: Colors.background,
-    fontSize: Typography.fontSize.xl, // Increased font size for better readability
-    fontFamily: Typography.fontFamily.semiBold, // Using semiBold for better visibility
-    flex: 1,
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
-  arrowContainer: {
-    width: 36, // Slightly larger
-    height: 36, // Slightly larger
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)', // More visible
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-  },
-  buttonArrow: {
-    color: Colors.background,
-    fontSize: Typography.fontSize.lg,
+    fontSize: Typography.fontSize.md,
     fontFamily: Typography.fontFamily.bold,
   },
+
 });

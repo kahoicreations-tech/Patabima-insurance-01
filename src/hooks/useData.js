@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { quotationsAPI, policiesAPI, claimsAPI } from '../services/api';
+import { quotationsAPI, policiesAPI, claimsAPI } from '../services/core/api';
 
 /**
  * Hook for managing quotations data

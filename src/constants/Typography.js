@@ -5,6 +5,12 @@ export const Typography = {
     semiBold: 'Poppins_600SemiBold',
     bold: 'Poppins_700Bold',
   },
+  fontWeight: {
+    regular: '400',
+    medium: '500',
+    semibold: '600',
+    bold: '700',
+  },
   fontSize: {
     xs: 12,
     sm: 14,

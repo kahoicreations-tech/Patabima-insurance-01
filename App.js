@@ -1,10 +1,18 @@
-import React from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, ActivityIndicator, StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fonts/poppins';
+// import { Amplify } from 'aws-amplify';
 import { AppNavigator } from './src/navigation';
+import { AWSProviderDev } from './src/contexts/AWSContextDev';
+// import awsConfig from './src/config/awsConfigDev';
 
 export default function App() {
+  // TODO: Re-enable AWS Amplify initialization after fixing circular dependencies
+  // useEffect(() => {
+  //   Amplify.configure(awsConfig);
+  // }, []);
+
   let [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -29,7 +37,14 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <AppNavigator />
+      <AWSProviderDev>
+        <StatusBar 
+          barStyle="light-content" 
+          backgroundColor="#D5222B" 
+          translucent={false}
+        />
+        <AppNavigator />
+      </AWSProviderDev>
     </SafeAreaProvider>
   );
 }

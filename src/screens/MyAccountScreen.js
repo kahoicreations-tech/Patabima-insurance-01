@@ -1,13 +1,23 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Share } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+import { QuoteStorageService } from '../services/QuoteStorageService';
+import { PricingService } from '../services';
 
 export default function MyAccountScreen() {
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [stats, setStats] = useState({
+    totalQuotes: 0,
+    paidQuotes: 0,
+    totalEarnings: 0,
+    monthlyEarnings: 0,
+    conversionRate: 0
+  });
   
   const agentData = {
     name: user?.name || 'John Doe',
@@ -15,10 +25,52 @@ export default function MyAccountScreen() {
     build: '55',
     upcomingCommission: 0,
     nextPayout: '16th July, 2025',
+    joinDate: '2024-01-15',
     todayStats: {
       sales: 0,
       production: 0,
       commission: 0
+    }
+  };
+
+  // Load agent statistics
+  useEffect(() => {
+    loadAgentStats();
+  }, []);
+
+  const loadAgentStats = async () => {
+    try {
+      const quotes = await QuoteStorageService.getAllQuotes();
+      const paidQuotes = quotes.filter(q => q.status === 'paid' || q.status === 'active');
+      
+      const totalEarnings = paidQuotes.reduce((sum, quote) => {
+        const premium = quote.calculatedPremium?.totalPremium || 0;
+        const commission = premium * 0.15; // Assuming 15% commission
+        return sum + commission;
+      }, 0);
+
+      const currentMonth = new Date().getMonth();
+      const monthlyQuotes = paidQuotes.filter(q => 
+        new Date(q.createdAt).getMonth() === currentMonth
+      );
+      
+      const monthlyEarnings = monthlyQuotes.reduce((sum, quote) => {
+        const premium = quote.calculatedPremium?.totalPremium || 0;
+        const commission = premium * 0.15;
+        return sum + commission;
+      }, 0);
+
+      const conversionRate = quotes.length > 0 ? (paidQuotes.length / quotes.length) * 100 : 0;
+
+      setStats({
+        totalQuotes: quotes.length,
+        paidQuotes: paidQuotes.length,
+        totalEarnings,
+        monthlyEarnings,
+        conversionRate
+      });
+    } catch (error) {
+      console.error('Error loading agent stats:', error);
     }
   };
 
@@ -46,6 +98,34 @@ export default function MyAccountScreen() {
     );
   };
 
+  const handleShare = async () => {
+    try {
+      const message = `🏆 PataBima Agent Performance\n\n👨‍💼 Agent: ${agentData.name}\n🆔 Code: ${agentData.agentCode}\n\n📊 Statistics:\n• Total Quotes: ${stats.totalQuotes}\n• Conversion Rate: ${stats.conversionRate.toFixed(1)}%\n• Total Earnings: ${PricingService.formatCurrency(stats.totalEarnings)}\n\n💪 Growing with PataBima Insurance!`;
+      
+      await Share.share({
+        message: message,
+        title: 'PataBima Agent Performance'
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
+  const handleExportData = async () => {
+    try {
+      const exportData = await QuoteStorageService.exportQuotes();
+      Alert.alert(
+        'Export Data',
+        `Successfully exported ${exportData.quotes.length} quotes and ${Object.keys(exportData.drafts).length} drafts.`,
+        [
+          { text: 'OK' }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to export data');
+    }
+  };
+
   const ActivityTab = ({ title, isActive, onPress }) => (
     <TouchableOpacity 
       style={[styles.activityTab, isActive && styles.activeActivityTab]}
@@ -55,6 +135,146 @@ export default function MyAccountScreen() {
         {title}
       </Text>
     </TouchableOpacity>
+  );
+
+  const renderOverviewTab = () => (
+    <View>
+      {/* Performance Cards */}
+      <View style={styles.performanceSection}>
+        <Text style={styles.sectionTitle}>Performance Overview</Text>
+        
+        <View style={styles.performanceGrid}>
+          <View style={styles.performanceCard}>
+            <Text style={styles.performanceValue}>{stats.totalQuotes}</Text>
+            <Text style={styles.performanceLabel}>Total Quotes</Text>
+          </View>
+          
+          <View style={styles.performanceCard}>
+            <Text style={styles.performanceValue}>{stats.paidQuotes}</Text>
+            <Text style={styles.performanceLabel}>Paid Policies</Text>
+          </View>
+          
+          <View style={styles.performanceCard}>
+            <Text style={[styles.performanceValue, { color: Colors.success }]}>
+              {stats.conversionRate.toFixed(1)}%
+            </Text>
+            <Text style={styles.performanceLabel}>Conversion Rate</Text>
+          </View>
+          
+          <View style={styles.performanceCard}>
+            <Text style={[styles.performanceValue, { color: Colors.primary }]}>
+              {PricingService.formatCurrency(stats.totalEarnings).replace('KES ', '')}
+            </Text>
+            <Text style={styles.performanceLabel}>Total Earnings</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Monthly Performance */}
+      <View style={styles.monthlySection}>
+        <Text style={styles.sectionTitle}>This Month</Text>
+        <View style={styles.monthlyCard}>
+          <View style={styles.monthlyItem}>
+            <Text style={styles.monthlyLabel}>Earnings</Text>
+            <Text style={styles.monthlyValue}>
+              {PricingService.formatCurrency(stats.monthlyEarnings)}
+            </Text>
+          </View>
+          <View style={styles.monthlyItem}>
+            <Text style={styles.monthlyLabel}>Next Payout</Text>
+            <Text style={styles.monthlyValue}>{agentData.nextPayout}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Quick Actions */}
+      <View style={styles.actionsSection}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        
+        <TouchableOpacity style={styles.actionItem} onPress={handleShare}>
+          <Text style={styles.actionIcon}>📤</Text>
+          <View style={styles.actionContent}>
+            <Text style={styles.actionTitle}>Share Performance</Text>
+            <Text style={styles.actionSubtitle}>Share your agent statistics</Text>
+          </View>
+          <Text style={styles.actionArrow}>›</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.actionItem} onPress={handleExportData}>
+          <Text style={styles.actionIcon}>💾</Text>
+          <View style={styles.actionContent}>
+            <Text style={styles.actionTitle}>Export Data</Text>
+            <Text style={styles.actionSubtitle}>Backup quotes and drafts</Text>
+          </View>
+          <Text style={styles.actionArrow}>›</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.actionItem} onPress={() => setActiveTab('settings')}>
+          <Text style={styles.actionIcon}>⚙️</Text>
+          <View style={styles.actionContent}>
+            <Text style={styles.actionTitle}>Account Settings</Text>
+            <Text style={styles.actionSubtitle}>Manage your profile</Text>
+          </View>
+          <Text style={styles.actionArrow}>›</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderSettingsTab = () => (
+    <View>
+      <View style={styles.settingsSection}>
+        <Text style={styles.sectionTitle}>Account Information</Text>
+        
+        <View style={styles.settingItem}>
+          <Text style={styles.settingLabel}>Full Name</Text>
+          <Text style={styles.settingValue}>{agentData.name}</Text>
+        </View>
+        
+        <View style={styles.settingItem}>
+          <Text style={styles.settingLabel}>Agent Code</Text>
+          <Text style={styles.settingValue}>{agentData.agentCode}</Text>
+        </View>
+        
+        <View style={styles.settingItem}>
+          <Text style={styles.settingLabel}>Build Version</Text>
+          <Text style={styles.settingValue}>{agentData.build}</Text>
+        </View>
+        
+        <View style={styles.settingItem}>
+          <Text style={styles.settingLabel}>Join Date</Text>
+          <Text style={styles.settingValue}>{new Date(agentData.joinDate).toLocaleDateString()}</Text>
+        </View>
+      </View>
+
+      <View style={styles.settingsSection}>
+        <Text style={styles.sectionTitle}>App Settings</Text>
+        
+        <TouchableOpacity style={styles.settingActionItem}>
+          <Text style={styles.settingActionText}>🔔 Notification Settings</Text>
+          <Text style={styles.actionArrow}>›</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.settingActionItem}>
+          <Text style={styles.settingActionText}>🔒 Privacy & Security</Text>
+          <Text style={styles.actionArrow}>›</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.settingActionItem}>
+          <Text style={styles.settingActionText}>❓ Help & Support</Text>
+          <Text style={styles.actionArrow}>›</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.settingActionItem}>
+          <Text style={styles.settingActionText}>📋 Terms & Conditions</Text>
+          <Text style={styles.actionArrow}>›</Text>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutText}>🚪 Logout</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -188,6 +408,9 @@ export default function MyAccountScreen() {
             </View>
           </View>
         </View>
+
+        {activeTab === 'overview' && renderOverviewTab()}
+        {activeTab === 'settings' && renderSettingsTab()}
 
       </ScrollView>
     </View>
@@ -327,11 +550,10 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
   },
   sectionTitle: {
-    fontSize: Typography.fontSize.xl,
-    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
     marginBottom: Spacing.md,
-    lineHeight: Typography.lineHeight.xl,
   },
   commissionCard: {
     backgroundColor: Colors.background,
@@ -540,5 +762,172 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: Typography.lineHeight.sm,
     textAlign: 'center',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+    padding: Spacing.xs,
+  },
+  performanceSection: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  performanceGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  performanceCard: {
+    width: '48%',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  performanceValue: {
+    fontSize: Typography.fontSize.xl,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+  },
+  performanceLabel: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  monthlySection: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  monthlyCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  monthlyItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  monthlyLabel: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
+  },
+  monthlyValue: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+  },
+  actionsSection: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  actionIcon: {
+    fontSize: 24,
+    marginRight: Spacing.md,
+  },
+  actionContent: {
+    flex: 1,
+  },
+  actionTitle: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs / 2,
+  },
+  actionSubtitle: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+  },
+  actionArrow: {
+    fontSize: 20,
+    color: Colors.textLight,
+  },
+  settingsSection: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  settingLabel: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
+  },
+  settingValue: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+  },
+  settingActionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  settingActionText: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textPrimary,
+  },
+  logoutButton: {
+    marginHorizontal: Spacing.lg,
+    backgroundColor: Colors.error + '15',
+    borderRadius: 12,
+    padding: Spacing.lg,
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  logoutText: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.error,
   },
 });

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,14 +11,15 @@ export default function SignupScreen() {
   const insets = useSafeAreaInsets();
   const { signup, isLoading } = useAuth();
   
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSignup = async () => {
-    if (!name.trim() || !email.trim() || !phoneNumber.trim() || !password.trim() || !confirmPassword.trim()) {
+    if (!email.trim() || !phoneNumber.trim() || !password.trim() || !confirmPassword.trim()) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -35,7 +36,6 @@ export default function SignupScreen() {
 
     try {
       const result = await signup({
-        name: name,
         email: email,
         phone: phoneNumber,
         password: password
@@ -53,15 +53,15 @@ export default function SignupScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar style="dark" />
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
-        showsVerticalScrollIndicator={false}
-      >
-        
-        {/* Logo */}
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <StatusBar style="light" />
+      
+      {/* Curved red header */}
+      <View style={styles.curvedHeader}>
+        {/* Circular logo container */}
         <View style={styles.logoContainer}>
           <Image 
             source={require('../../../assets/PataLogo.png')} 
@@ -69,7 +69,15 @@ export default function SignupScreen() {
             resizeMode="contain"
           />
         </View>
+        
+        <Text style={styles.agencyText}>PATA BIMA AGENCY</Text>
+        <Text style={styles.taglineText}>Insurance for Protection</Text>
+      </View>
 
+      <View 
+        style={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
+      >
+        
         {/* Header */}
         <View style={styles.headerContainer}>
           <Text style={styles.title}>Let's sign You Up</Text>
@@ -81,23 +89,12 @@ export default function SignupScreen() {
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
-              placeholder="Full Name"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-              placeholderTextColor={Colors.textSecondary}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
               placeholder="Email Address"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              placeholderTextColor={Colors.textSecondary}
+              placeholderTextColor={Colors.textLight}
             />
           </View>
 
@@ -108,59 +105,69 @@ export default function SignupScreen() {
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="phone-pad"
-              placeholderTextColor={Colors.textSecondary}
+              placeholderTextColor={Colors.textLight}
             />
           </View>
 
           <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholderTextColor={Colors.textSecondary}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                placeholderTextColor={Colors.textLight}
+              />
+              <TouchableOpacity 
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Text style={styles.eyeText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              placeholderTextColor={Colors.textSecondary}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                placeholderTextColor={Colors.textLight}
+              />
+              <TouchableOpacity 
+                style={styles.eyeIcon}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                <Text style={styles.eyeText}>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
- <View style={styles.signInContainer}>
-            <Text style={styles.signInText}>Have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.signInLink}>Sign In</Text>
-            </TouchableOpacity>
-          </View>
+
           <TouchableOpacity 
-            style={[styles.signUpButton, { opacity: isLoading ? 0.7 : 1 }]}
+            style={styles.signUpButton}
             onPress={handleSignup}
             disabled={isLoading}
             activeOpacity={0.8}
           >
             <Text style={styles.signUpButtonText}>
-              {isLoading ? 'Creating Account...' : 'Sign Up'}
+              {isLoading ? 'Signing Up...' : 'Sign Up'}
             </Text>
           </TouchableOpacity>
 
-          <View style={styles.termsContainer}>
-            <Text style={styles.termsText}>
-              By signing up, you agree to our Terms and Policies
-            </Text>
+          <View style={styles.signInContainer}>
+            <Text style={styles.signInText}>Have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.signInLink}>Sign In</Text>
+            </TouchableOpacity>
           </View>
-
-         
         </View>
 
-      </ScrollView>
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -169,106 +176,180 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  scrollView: {
-    flex: 1,
+  curvedHeader: {
+    backgroundColor: Colors.primary,
+    paddingTop: 50,
+    paddingBottom: 40,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    alignItems: 'center',
+    height: 200, // Increased height for better text visibility
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  logoContainer: {
+    width: 90,
+    height: 90,
+    backgroundColor: Colors.background,
+    borderRadius: 45,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+    shadowColor: Colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  logo: {
+    width: 55,
+    height: 55,
+  },
+  agencyText: {
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.background,
+    textAlign: 'center',
+    marginBottom: 2, // Reduced from Spacing.xs to bring texts closer
+    letterSpacing: 0.5,
+  },
+  taglineText: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.background,
+    textAlign: 'center',
+    opacity: 1,
+    marginTop: 0, // Removed margin top to reduce spacing
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: Spacing.lg,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    paddingVertical: Spacing.lg,
-  },
-  logo: {
-    width: 160,
-    height: 80,
+    paddingHorizontal: 24,
+    paddingTop: 20,
   },
   headerContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: 24,
   },
   title: {
-    fontSize: Typography.fontSize.xxxl,
+    fontSize: Typography.fontSize.xxl,
     fontFamily: Typography.fontFamily.bold,
     color: Colors.textPrimary,
     marginBottom: Spacing.sm,
-    lineHeight: Typography.lineHeight.xxxl,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: Typography.fontSize.md,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: Typography.lineHeight.md,
   },
   formContainer: {
     flex: 1,
+    marginTop: 16,
   },
   inputContainer: {
-    marginBottom: Spacing.md,
+    marginBottom: 20,
   },
   input: {
-    backgroundColor: Colors.backgroundGray,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: 8,
-    fontSize: Typography.fontSize.md,
+    backgroundColor: '#F8F8F8',
+    paddingHorizontal: 18,
+    paddingVertical: Platform.OS === 'ios' ? 16 : 14,
+    borderRadius: 14,
+    fontSize: 16,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textPrimary,
-    lineHeight: Typography.lineHeight.md,
+    borderWidth: 0,
+    height: 56,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F8F8',
+    borderRadius: 14,
+    borderWidth: 0,
+    height: 56,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 18,
+    paddingVertical: Platform.OS === 'ios' ? 16 : 14,
+    fontSize: 16,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textPrimary,
+  },
+  eyeIcon: {
+    paddingHorizontal: 16,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eyeText: {
+    fontSize: 22,
+    opacity: 0.7,
   },
   signUpButton: {
     backgroundColor: Colors.primary,
-    paddingVertical: Spacing.lg + 4,
-    paddingHorizontal: Spacing.xl,
-    borderRadius: 16,
+    paddingVertical: 18,
+    borderRadius: 14,
     alignItems: 'center',
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.md,
+    justifyContent: 'center',
+    marginTop: 24,
+    marginBottom: 20,
     shadowColor: Colors.primary,
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 6,
     },
     shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowRadius: 10,
+    elevation: 10,
+    width: '100%',
+    minHeight: 56,
   },
   signUpButtonText: {
     color: Colors.background,
     fontSize: Typography.fontSize.lg,
     fontFamily: Typography.fontFamily.bold,
-    lineHeight: Typography.lineHeight.lg,
-  },
-  termsContainer: {
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  termsText: {
-    fontSize: Typography.fontSize.sm,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: Typography.lineHeight.sm,
   },
   signInContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: Spacing.md,
   },
   signInText: {
     fontSize: Typography.fontSize.md,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
-    lineHeight: Typography.lineHeight.md,
   },
   signInLink: {
     fontSize: Typography.fontSize.md,
     fontFamily: Typography.fontFamily.semiBold,
     color: Colors.primary,
-    lineHeight: Typography.lineHeight.md,
   },
 });

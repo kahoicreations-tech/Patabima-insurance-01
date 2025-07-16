@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography } from '../constants';
+import { ModernCard, IconBadge, StatsCard } from '../components';
 
 export default function ClaimsScreen() {
   const [activeTab, setActiveTab] = useState('Pending');
   const [searchQuery, setSearchQuery] = useState('');
+  const insets = useSafeAreaInsets();
 
-  // Same data as in HomeScreen
   const claimsData = [
     {
       id: 1,
@@ -58,53 +60,120 @@ export default function ClaimsScreen() {
     item.policyNo?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const renderClaimCard = ({ item }) => (
-    <View style={styles.claimCard}>
-      <View style={styles.claimHeader}>
-        <Text style={styles.claimCategory}>{item.category}</Text>
-        <View style={[styles.claimStatusBadge, {
-          backgroundColor: item.status === 'Processed' ? Colors.success + '20' : Colors.warning + '20'
-        }]}>
-          <Text style={[styles.claimStatus, {
-            color: item.status === 'Processed' ? Colors.success : Colors.warning
-          }]}>{item.status}</Text>
+  const renderClaimCard = ({ item }) => {
+    const getIconForCategory = (category) => {
+      switch (category.toLowerCase()) {
+        case 'vehicle': return 'motor';
+        case 'medical': return 'medical';
+        case 'wiba': return 'wiba';
+        default: return 'info';
+      }
+    };
+
+    const getStatusColor = (status) => {
+      return status === 'Processed' ? Colors.success : Colors.warning;
+    };
+
+    return (
+      <ModernCard style={styles.claimCard} elevation="medium">
+        <View style={styles.claimHeader}>
+          <View style={styles.claimCategoryContainer}>
+            <IconBadge 
+              icon={getIconForCategory(item.category)}
+              size="small"
+              variant="light"
+              style={styles.categoryIcon}
+            />
+            <Text style={styles.claimCategory}>{item.category}</Text>
+          </View>
+          
+          <View style={[styles.claimStatusBadge, {
+            backgroundColor: getStatusColor(item.status) + '20'
+          }]}>
+            <Text style={[styles.claimStatus, {
+              color: getStatusColor(item.status)
+            }]}>{item.status}</Text>
+          </View>
         </View>
-      </View>
-      <Text style={styles.claimPolicy}>Policy: {item.policyNo}</Text>
-      <Text style={styles.claimDate}>Claim Date: {new Date(item.claimDate).toLocaleDateString()}</Text>
-      <View style={styles.claimFooter}>
-        <Text style={styles.claimAmount}>{item.amount}</Text>
-        {item.status === 'Pending' && (
-          <TouchableOpacity style={styles.viewButton}>
-            <Text style={styles.viewButtonText}>View Details</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
+        
+        <View style={styles.claimDetails}>
+          <View style={styles.claimRow}>
+            <Text style={styles.claimLabel}>Policy Number:</Text>
+            <Text style={styles.claimValue}>{item.policyNo}</Text>
+          </View>
+          
+          <View style={styles.claimRow}>
+            <Text style={styles.claimLabel}>Claim Date:</Text>
+            <Text style={styles.claimValue}>
+              {new Date(item.claimDate).toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
+        
+        <View style={styles.claimFooter}>
+          <Text style={styles.claimAmount}>{item.amount}</Text>
+          
+          {item.status === 'Pending' && (
+            <TouchableOpacity style={styles.viewButton}>
+              <Text style={styles.viewButtonText}>View Details</Text>
+              <Text style={styles.viewButtonIcon}>→</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </ModernCard>
+    );
+  };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar style="dark" />
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Claims</Text>
+        <Text style={styles.title}>Claims Management</Text>
+        <Text style={styles.subtitle}>Track and manage your claims</Text>
+      </View>
+
+      {/* Summary Stats */}
+      <View style={styles.summaryContainer}>
+        <StatsCard
+          title="Total Claims"
+          value={claimsData.length.toString()}
+          icon="📋"
+          variant="default"
+          style={styles.summaryCard}
+        />
+        
+        <StatsCard
+          title="Pending"
+          value={pendingClaims.length.toString()}
+          icon="⏳"
+          variant="warning"
+          style={styles.summaryCard}
+        />
+        
+        <StatsCard
+          title="Processed"
+          value={processedClaims.length.toString()}
+          icon="✅"
+          variant="success"
+          style={styles.summaryCard}
+        />
       </View>
 
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
+      <ModernCard style={styles.searchContainer} elevation="low">
         <View style={styles.searchInputContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <IconBadge icon="search" size="small" variant="light" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search claims..."
+            placeholder="Search claims by category or policy..."
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor={Colors.textLight}
           />
         </View>
-      </View>
+      </ModernCard>
 
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
@@ -164,148 +233,162 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingTop: 50,
-    paddingBottom: 85,
+    paddingHorizontal: Spacing.md,
   },
   header: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
   title: {
-    fontSize: Typography.fontSize.xxl,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.textPrimary,
-    lineHeight: Typography.lineHeight.xxl,
+    ...Typography.headingLarge,
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  subtitle: {
+    ...Typography.bodyMedium,
+    color: Colors.textLight,
+  },
+  summaryContainer: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  summaryCard: {
+    flex: 1,
   },
   searchContainer: {
-    paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.backgroundGray,
-    borderRadius: 8,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-  searchIcon: {
-    fontSize: Typography.fontSize.md,
-    marginRight: Spacing.sm,
-    color: Colors.textLight,
+    gap: Spacing.sm,
   },
   searchInput: {
     flex: 1,
-    fontSize: Typography.fontSize.md,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.textPrimary,
-    lineHeight: Typography.lineHeight.md,
+    ...Typography.bodyMedium,
+    color: Colors.text,
+    paddingVertical: Spacing.xs,
   },
   tabContainer: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.xl,
+    backgroundColor: Colors.backgroundLight,
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: Spacing.lg,
   },
   tab: {
     flex: 1,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: 16,
-    marginRight: Spacing.xs,
-    backgroundColor: Colors.backgroundGray,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   activeTab: {
     backgroundColor: Colors.primary,
-    marginRight: 0,
-    marginLeft: Spacing.xs,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   tabText: {
-    fontSize: Typography.fontSize.md,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.textSecondary,
-    lineHeight: Typography.lineHeight.md,
+    ...Typography.bodyMedium,
+    fontWeight: '500',
+    color: Colors.textLight,
   },
   activeTabText: {
-    color: Colors.background,
-    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.white,
+    fontWeight: '600',
   },
   listContainer: {
-    paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xl,
   },
   claimCard: {
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    padding: Spacing.lg,
     marginBottom: Spacing.md,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    padding: Spacing.md,
   },
   claimHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  claimCategoryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  categoryIcon: {
+    marginRight: 0,
   },
   claimCategory: {
-    fontSize: Typography.fontSize.lg,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.textPrimary,
-    lineHeight: Typography.lineHeight.lg,
+    ...Typography.bodyLarge,
+    fontWeight: '600',
+    color: Colors.text,
   },
   claimStatusBadge: {
-    paddingVertical: 4,
     paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
     borderRadius: 12,
   },
   claimStatus: {
-    fontSize: Typography.fontSize.xs,
-    fontFamily: Typography.fontFamily.medium,
-    lineHeight: Typography.lineHeight.xs,
+    ...Typography.bodySmall,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
-  claimPolicy: {
-    fontSize: Typography.fontSize.sm,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.xs,
-    lineHeight: Typography.lineHeight.sm,
-  },
-  claimDate: {
-    fontSize: Typography.fontSize.sm,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.textSecondary,
+  claimDetails: {
     marginBottom: Spacing.md,
-    lineHeight: Typography.lineHeight.sm,
+  },
+  claimRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+  },
+  claimLabel: {
+    ...Typography.bodyMedium,
+    color: Colors.textLight,
+  },
+  claimValue: {
+    ...Typography.bodyMedium,
+    fontWeight: '500',
+    color: Colors.text,
   },
   claimFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.backgroundLight,
   },
   claimAmount: {
-    fontSize: Typography.fontSize.lg,
-    fontFamily: Typography.fontFamily.bold,
+    ...Typography.bodyLarge,
+    fontWeight: '700',
     color: Colors.primary,
-    lineHeight: Typography.lineHeight.lg,
   },
   viewButton: {
-    backgroundColor: Colors.primaryLight,
-    paddingVertical: Spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '10',
     paddingHorizontal: Spacing.md,
-    borderRadius: 6,
+    paddingVertical: Spacing.sm,
+    borderRadius: 8,
+    gap: Spacing.xs,
   },
   viewButtonText: {
+    ...Typography.bodyMedium,
     color: Colors.primary,
-    fontSize: Typography.fontSize.sm,
-    fontFamily: Typography.fontFamily.semiBold,
-    lineHeight: Typography.lineHeight.sm,
+    fontWeight: '600',
+  },
+  viewButtonIcon: {
+    ...Typography.bodyMedium,
+    color: Colors.primary,
+    fontWeight: '600',
   },
   emptyStateContainer: {
     flex: 1,
@@ -314,34 +397,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
   },
   emptyStateIcon: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   iconCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.primaryLight,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.backgroundLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
   iconX: {
-    fontSize: 40,
-    color: Colors.primary,
-    fontFamily: Typography.fontFamily.bold,
+    fontSize: 32,
+    color: Colors.textLight,
   },
   emptyStateTitle: {
-    fontSize: Typography.fontSize.xl,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.primary,
-    marginBottom: Spacing.md,
+    ...Typography.headingMedium,
+    color: Colors.text,
     textAlign: 'center',
-    lineHeight: Typography.lineHeight.xl,
+    marginBottom: Spacing.sm,
   },
   emptyStateMessage: {
-    fontSize: Typography.fontSize.md,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.textSecondary,
+    ...Typography.bodyMedium,
+    color: Colors.textLight,
     textAlign: 'center',
-    lineHeight: Typography.lineHeight.md,
+    lineHeight: 20,
   },
 });

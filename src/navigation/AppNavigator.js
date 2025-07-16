@@ -4,7 +4,21 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { HomeScreen, QuotationsScreen, UpcomingScreen, MyAccountScreen, MotorQuotationScreen } from '../screens';
+import { 
+  HomeScreen, 
+  QuotationsScreenNew, 
+  UpcomingScreen, 
+  MyAccountScreen, 
+  MotorQuotationScreen, 
+  MedicalQuotationScreen, 
+  WIBAQuotationScreen, 
+  TravelQuotationScreen, 
+  PersonalAccidentQuotationScreen, 
+  LastExpenseQuotationScreen,
+  RenewalScreen,
+  ClaimDetailsScreen,
+  ExtensionScreen
+} from '../screens';
 import SplashScreen from '../screens/auth/SplashScreen';
 import InsuranceWelcomeScreen from '../screens/auth/InsuranceWelcomeScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -149,17 +163,37 @@ function AuthNavigator() {
   );
 }
 
-// Home Stack Navigator to include the MotorQuotation screen
+// Home Stack Navigator to include quotation screens
 function HomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="MotorQuotation" component={MotorQuotationScreen} />
+      <Stack.Screen name="MedicalQuotation" component={MedicalQuotationScreen} />
+      <Stack.Screen name="WIBAQuotation" component={WIBAQuotationScreen} />
+      <Stack.Screen name="TravelQuotation" component={TravelQuotationScreen} />
+      <Stack.Screen name="PersonalAccidentQuotation" component={PersonalAccidentQuotationScreen} />
+      <Stack.Screen name="LastExpenseQuotation" component={LastExpenseQuotationScreen} />
+      <Stack.Screen name="Renewal" component={RenewalScreen} />
+      <Stack.Screen name="ClaimDetails" component={ClaimDetailsScreen} />
+      <Stack.Screen name="Extension" component={ExtensionScreen} />
     </Stack.Navigator>
   );
 }
 
-// Main App Tab Navigator
+// Upcoming Stack Navigator to include renewal and claim details screens
+function UpcomingStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="UpcomingMain" component={UpcomingScreen} />
+      <Stack.Screen name="Renewal" component={RenewalScreen} />
+      <Stack.Screen name="ClaimDetails" component={ClaimDetailsScreen} />
+      <Stack.Screen name="Extension" component={ExtensionScreen} />
+    </Stack.Navigator>
+  );
+}
+
+// Main App Tab Navigator - ORIGINAL STRUCTURE: Home | Quotations | Upcoming | Account
 function MainTabNavigator() {
   return (
     <Tab.Navigator
@@ -179,24 +213,24 @@ function MainTabNavigator() {
       />
       <Tab.Screen
         name="Quotations"
-        component={QuotationsScreen}
+        component={QuotationsScreenNew}
         options={{
-          tabBarEmoji: "📄",
+          tabBarEmoji: "📋",
           tabBarLabel: "Quotations",
           tabBarAccessibilityLabel: "Quotations Screen"
         }}
       />
       <Tab.Screen
         name="Upcoming"
-        component={UpcomingScreen}
+        component={UpcomingStack}
         options={{
-          tabBarEmoji: "📅",
+          tabBarEmoji: "⏰",
           tabBarLabel: "Upcoming",
           tabBarAccessibilityLabel: "Upcoming Screen"
         }}
       />
       <Tab.Screen
-        name="My Account"
+        name="Account"
         component={MyAccountScreen}
         options={{
           tabBarEmoji: "👤",
@@ -208,30 +242,22 @@ function MainTabNavigator() {
   );
 }
 
-// Navigation Component
-function AppNavigatorContent() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    // You could show a loading screen here
-    return null;
-  }
+// Root App Navigator with Authentication Check
+function RootNavigator() {
+  const { isAuthenticated } = useAuth();
   
   return (
     <NavigationContainer>
-      {isAuthenticated ? (
-        <MainTabNavigator />
-      ) : (
-        <AuthNavigator />
-      )}
+      {isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 }
 
+// Main App component with providers
 export default function AppNavigator() {
   return (
     <AuthProvider>
-      <AppNavigatorContent />
+      <RootNavigator />
     </AuthProvider>
   );
 }
@@ -243,19 +269,23 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.05)',
-    paddingTop: 12,
-    elevation: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+    paddingTop: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
   },
   tabButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    minHeight: 50,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
   },
   tabContent: {
     alignItems: 'center',
@@ -263,38 +293,31 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   iconContainer: {
-    width: 46,
-    height: 46,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
+    marginBottom: Spacing.xs / 2,
   },
   tabIcon: {
-    fontSize: 24,
-    color: Colors.tabInactive,
-    opacity: 0.8,
+    fontSize: 20,
+    color: Colors.textSecondary,
   },
   tabIconActive: {
-    color: Colors.tabActive,
-    opacity: 1,
+    color: Colors.primary,
   },
   tabLabel: {
-    fontSize: 12,
+    fontSize: Typography.fontSize.xs,
     fontFamily: Typography.fontFamily.medium,
-    color: Colors.tabInactive,
-    marginTop: 2,
+    color: Colors.textSecondary,
     textAlign: 'center',
   },
   tabLabelActive: {
+    color: Colors.primary,
     fontFamily: Typography.fontFamily.semiBold,
-    color: Colors.tabActive,
   },
   activeDot: {
     position: 'absolute',
-    top: -6,
-    width: 5,
-    height: 5,
-    borderRadius: 3,
+    bottom: -6,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: Colors.primary,
-  }
+  },
 });

@@ -1,5 +1,47 @@
-export { default as HomeScreen } from './HomeScreen';
-export { default as QuotationsScreen } from './QuotationsScreen';
-export { default as UpcomingScreen } from './UpcomingScreen';
-export { default as MyAccountScreen } from './MyAccountScreen';
-export { default as MotorQuotationScreen } from './MotorQuotationScreen';
+// ==========================================
+// PATABIMA SCREENS - ORGANIZED EXPORTS
+// ==========================================
+
+// Main Application Screens (Core Navigation)
+export * from './main';
+
+// Authentication Screens
+export * from './auth';
+
+// Insurance Quotation Screens
+export * from './quotations';
+
+// Administrative Screens
+export * from './admin';
+
+// ==========================================
+// INDIVIDUAL EXPORTS FOR BACKWARD COMPATIBILITY
+// ==========================================
+
+// Main Screens
+export { 
+  HomeScreen, 
+  QuotationsScreenNew, 
+  UpcomingScreen, 
+  MyAccountScreen, 
+  ClaimsScreenNew,
+  RenewalScreen,
+  ClaimDetailsScreen 
+} from './main';
+
+// Auth Screens
+export { SplashScreen, InsuranceWelcomeScreen, LoginScreen, SignupScreen, ForgotPasswordScreen } from './auth';
+
+// Quotation Screens
+export { 
+  MotorQuotationScreen, 
+  MedicalQuotationScreen, 
+  WIBAQuotationScreen, 
+  TravelQuotationScreen, 
+  PersonalAccidentQuotationScreen, 
+  LastExpenseQuotationScreen,
+  QuoteComparisonScreen 
+} from './quotations';
+
+// Admin Screens
+export { AdminPricingScreen, AdminPricingScreenAWS } from './admin';

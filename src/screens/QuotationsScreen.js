@@ -1,104 +1,241 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert, Share } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography } from '../constants';
+import { QuoteStorageService } from '../services/QuoteStorageService';
+import { PDFService } from '../services/PDFService';
+import { PaymentService } from '../services/PaymentService';
+import { PricingService } from '../services';
 
 export default function QuotationsScreen() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [quotes, setQuotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedQuote, setExpandedQuote] = useState(null);
   const insets = useSafeAreaInsets();
 
-  const filters = ['All', 'Applied', 'Unapplied'];
+  const filters = ['All', 'Draft', 'Applied', 'Paid', 'Active'];
 
-  const mockQuotations = [
-    {
-      id: 1,
-      policyNumber: 'KDN432A',
-      policyType: 'PvC',
-      amount: 37709,
-      status: 'Unapplied',
-      date: '2025-07-06'
-    },
-    {
-      id: 2,
-      policyNumber: 'KDN432A',
-      policyType: 'PvC',
-      amount: 32686,
-      status: 'Unapplied',
-      date: '2025-07-05'
-    },
-    {
-      id: 3,
-      policyNumber: 'KDN432A',
-      policyType: 'PvC',
-      amount: 32686,
-      status: 'Unapplied',
-      date: '2025-07-04'
-    },
-    {
-      id: 4,
-      policyNumber: 'KDN432A',
-      policyType: 'PvC',
-      amount: 32686,
-      status: 'Applied',
-      date: '2025-07-03'
-    },
-    {
-      id: 5,
-      policyNumber: 'KDN432A',
-      policyType: 'PvC',
-      amount: 32686,
-      status: 'Applied',
-      date: '2025-07-02'
+  // Load quotes on component mount
+  useEffect(() => {
+    loadQuotes();
+  }, []);
+
+  const loadQuotes = async () => {
+    try {
+      setLoading(true);
+      const allQuotes = await QuoteStorageService.getAllQuotes();
+      setQuotes(allQuotes);
+    } catch (error) {
+      console.error('Error loading quotes:', error);
+      Alert.alert('Error', 'Failed to load quotes');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const handleDeleteQuote = async (quoteId) => {
+    Alert.alert(
+      'Delete Quote',
+      'Are you sure you want to delete this quote?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updatedQuotes = quotes.filter(q => q.id !== quoteId);
+              setQuotes(updatedQuotes);
+              // Note: Add actual delete functionality to QuoteStorageService
+              Alert.alert('Success', 'Quote deleted successfully');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete quote');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleShareQuote = async (quote) => {
+    try {
+      await PDFService.sharePDF(quote);
+    } catch (error) {
+      console.error('Error sharing quote:', error);
+      Alert.alert('Error', 'Failed to share quote');
+    }
+  };
+
+  const handlePayment = async (quote) => {
+    try {
+      PaymentService.showPaymentOptions(quote, async (method, amount, installmentType) => {
+        const result = await PaymentService.initiatePayment(quote, method, amount);
+        
+        if (result.success) {
+          Alert.alert('Payment Initiated', result.message);
+          // Update quote status
+          await QuoteStorageService.updateQuoteStatus(quote.id, 'payment_pending');
+          loadQuotes();
+        } else {
+          Alert.alert('Payment Failed', result.error);
+        }
+      });
+    } catch (error) {
+      console.error('Error initiating payment:', error);
+      Alert.alert('Error', 'Failed to initiate payment');
+    }
+  };
+
+  const getInsuranceTypeIcon = (type) => {
+    const icons = {
+      motor: '🚗',
+      medical: '🏥',
+      wiba: '👷',
+      lastExpense: '⚰️',
+      travel: '✈️',
+      personalAccident: '🛡️'
+    };
+    return icons[type] || '📋';
+  };
+
+  const getInsuranceTypeName = (type) => {
+    const names = {
+      motor: 'Motor Vehicle',
+      medical: 'Medical Insurance',
+      wiba: 'WIBA',
+      lastExpense: 'Last Expense',
+      travel: 'Travel Insurance',
+      personalAccident: 'Personal Accident'
+    };
+    return names[type] || 'Insurance';
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Applied':
+      case 'active':
         return Colors.success;
-      case 'Unapplied':
+      case 'paid':
+        return Colors.primary;
+      case 'applied':
         return Colors.warning;
+      case 'draft':
+        return Colors.textSecondary;
+      case 'payment_pending':
+        return '#FF9500';
       default:
         return Colors.textSecondary;
     }
   };
 
-  const filteredQuotations = mockQuotations.filter(quotation => {
-    const matchesFilter = activeFilter === 'All' || quotation.status === activeFilter;
-    const matchesSearch = quotation.policyNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         quotation.policyType.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredQuotes = quotes.filter(quote => {
+    const matchesFilter = activeFilter === 'All' || quote.status === activeFilter.toLowerCase();
+    const matchesSearch = 
+      quote.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      quote.insuranceType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      quote.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      quote.companyName?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
-  const renderQuotationItem = ({ item }) => (
-    <TouchableOpacity style={styles.quotationCard}>
-      <View style={styles.cardHeader}>
-        <View style={styles.policyInfo}>
-          <View style={styles.iconPlaceholder}>
-            <Text style={styles.iconText}>📋</Text>
+  const renderQuoteItem = ({ item }) => {
+    const isExpanded = expandedQuote === item.id;
+    
+    return (
+      <View style={styles.quotationCard}>
+        <TouchableOpacity 
+          style={styles.cardHeader}
+          onPress={() => setExpandedQuote(isExpanded ? null : item.id)}
+        >
+          <View style={styles.policyInfo}>
+            <View style={styles.iconPlaceholder}>
+              <Text style={styles.iconText}>{getInsuranceTypeIcon(item.insuranceType)}</Text>
+            </View>
+            <View style={styles.policyDetails}>
+              <Text style={styles.policyNumber}>{item.id}</Text>
+              <Text style={styles.policyType}>{getInsuranceTypeName(item.insuranceType)}</Text>
+              <Text style={styles.amount}>
+                {PricingService.formatCurrency(item.calculatedPremium?.totalPremium || 0)}
+              </Text>
+              <Text style={styles.grossLabel}>
+                Customer: {item.customerName || item.companyName || 'N/A'}
+              </Text>
+            </View>
           </View>
-          <View style={styles.policyDetails}>
-            <Text style={styles.policyNumber}>{item.policyNumber}</Text>
-            <Text style={styles.policyType}>Policy Type: {item.policyType}</Text>
-            <Text style={styles.amount}>Ksh. {item.amount.toLocaleString()}</Text>
-            <Text style={styles.grossLabel}>(gross)</Text>
+          <View style={styles.statusContainer}>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
+              <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+                {item.status?.charAt(0).toUpperCase() + item.status?.slice(1) || 'Draft'}
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.expandButton}>
+              <Text style={[styles.expandIcon, { transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }]}>
+                ⌄
+              </Text>
+            </TouchableOpacity>
           </View>
-        </View>
-        <View style={styles.statusContainer}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
-            <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
-              {item.status}
-            </Text>
+        </TouchableOpacity>
+
+        {isExpanded && (
+          <View style={styles.expandedContent}>
+            <View style={styles.quoteDetails}>
+              <Text style={styles.detailLabel}>Created: {new Date(item.createdAt).toLocaleDateString()}</Text>
+              <Text style={styles.detailLabel}>
+                Phone: {item.phoneNumber || 'N/A'}
+              </Text>
+              {item.email && (
+                <Text style={styles.detailLabel}>Email: {item.email}</Text>
+              )}
+              
+              {/* Premium breakdown */}
+              {item.calculatedPremium && (
+                <View style={styles.premiumBreakdown}>
+                  <Text style={styles.breakdownTitle}>Premium Breakdown:</Text>
+                  <Text style={styles.breakdownItem}>
+                    Monthly: {PricingService.formatCurrency(item.calculatedPremium.totalPremium / 12)}
+                  </Text>
+                  {item.calculatedPremium.basePremium && (
+                    <Text style={styles.breakdownItem}>
+                      Base Premium: {PricingService.formatCurrency(item.calculatedPremium.basePremium)}
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
+
+            {/* Action buttons */}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.shareButton]}
+                onPress={() => handleShareQuote(item)}
+              >
+                <Text style={styles.actionButtonText}>📤 Share PDF</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.payButton]}
+                onPress={() => handlePayment(item)}
+                disabled={item.status === 'paid' || item.status === 'active'}
+              >
+                <Text style={[styles.actionButtonText, styles.payButtonText]}>
+                  💳 {item.status === 'paid' ? 'Paid' : 'Pay Now'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.deleteButton]}
+                onPress={() => handleDeleteQuote(item.id)}
+              >
+                <Text style={[styles.actionButtonText, styles.deleteButtonText]}>🗑️ Delete</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <TouchableOpacity style={styles.expandButton}>
-            <Text style={styles.expandIcon}>⌄</Text>
-          </TouchableOpacity>
-        </View>
+        )}
       </View>
-    </TouchableOpacity>
-  );
+    );
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -146,12 +283,26 @@ export default function QuotationsScreen() {
 
       {/* Quotations List */}
       <FlatList
-        data={filteredQuotations}
-        renderItem={renderQuotationItem}
-        keyExtractor={(item) => item.id.toString()}
+        data={filteredQuotes}
+        renderItem={renderQuoteItem}
+        keyExtractor={(item) => item.id}
         style={styles.list}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 100 }]}
+        refreshing={loading}
+        onRefresh={loadQuotes}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>📋</Text>
+            <Text style={styles.emptyTitle}>No Quotes Found</Text>
+            <Text style={styles.emptyMessage}>
+              {searchQuery 
+                ? 'No quotes match your search criteria' 
+                : 'Start creating quotes to see them here'
+              }
+            </Text>
+          </View>
+        )}
       />
     </View>
   );
@@ -312,5 +463,96 @@ const styles = StyleSheet.create({
   expandIcon: {
     fontSize: Typography.fontSize.lg,
     color: Colors.textSecondary,
+  },
+  expandedContent: {
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  quoteDetails: {
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  detailLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+    fontFamily: Typography.fontFamily.regular,
+  },
+  premiumBreakdown: {
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+  },
+  breakdownTitle: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+  },
+  breakdownItem: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs / 2,
+    fontFamily: Typography.fontFamily.regular,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  actionButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 6,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  shareButton: {
+    backgroundColor: Colors.primary + '15',
+  },
+  payButton: {
+    backgroundColor: Colors.success + '15',
+  },
+  deleteButton: {
+    backgroundColor: Colors.error + '15',
+  },
+  actionButtonText: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textPrimary,
+  },
+  payButtonText: {
+    color: Colors.success,
+  },
+  deleteButtonText: {
+    color: Colors.error,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.xl * 2,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: Spacing.md,
+  },
+  emptyTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.sm,
+  },
+  emptyMessage: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.lg,
+    fontFamily: Typography.fontFamily.regular,
   },
 });

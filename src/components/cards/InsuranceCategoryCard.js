@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Colors, Spacing, Typography } from '../../constants';
 
 const InsuranceCategoryCard = ({
   icon,
+  image,
   name,
   color = Colors.primary,
   onPress,
@@ -16,7 +17,11 @@ const InsuranceCategoryCard = ({
       activeOpacity={0.8}
     >
       <View style={[styles.iconContainer, { backgroundColor: `${color}15` }]}>
-        <Text style={styles.icon}>{icon}</Text>
+        {image ? (
+          <Image source={image} style={styles.image} resizeMode="contain" />
+        ) : (
+          <Text style={styles.icon}>{icon}</Text>
+        )}
       </View>
       <Text style={styles.name}>{name}</Text>
     </TouchableOpacity>
@@ -54,6 +59,11 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 24,
+  },
+  image: {
+    width: 32,
+    height: 32,
+    tintColor: Colors.primary,
   },
   name: {
     fontSize: Typography.fontSize.sm,

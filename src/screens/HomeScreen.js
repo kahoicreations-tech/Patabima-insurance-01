@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, TextInput } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, TextInput, Alert, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Spacing, Typography } from '../constants';
+import { Colors, Spacing, Typography } from '../../constants';
+import { SafeScreen, EnhancedCard, StatCard, StatusBadge, CompactCurvedHeader } from '../../components';
 
 export default function HomeScreen() {
   const [currentCampaign, setCurrentCampaign] = useState(0);
+  const [currentCategory, setCurrentCategory] = useState(0);
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const categoryScrollRef = useRef(null);
 
   const mockData = {
     sales: 125000,
@@ -19,31 +22,103 @@ export default function HomeScreen() {
   };
 
   const insuranceCategories = [
-    { id: 1, name: 'Motor Vehicle', icon: '🚗', color: Colors.primary, screen: 'MotorQuotation' },
-    { id: 2, name: 'Medical', icon: '🏥', color: Colors.success, screen: null },
-    { id: 3, name: 'WIBA', icon: '👷', color: Colors.warning, screen: null },
-    { id: 4, name: 'Last Expense', icon: '⚰️', color: Colors.secondary, screen: null },
-    { id: 5, name: 'Travel', icon: '✈️', color: Colors.info, screen: null },
-    { id: 6, name: 'Personal Accident', icon: '🛡️', color: Colors.primary, screen: null },
-    { id: 7, name: 'Professional Indemnity', icon: '💼', color: Colors.success, screen: null },
-    { id: 8, name: 'Domestic Package', icon: '🏠', color: Colors.warning, screen: null }
+    { 
+      id: 1, 
+      name: 'Motor Vehicle', 
+      icon: '🚗', 
+      image: require('../../assets/images/motor.png'),
+      color: Colors.primary, 
+      screen: 'MotorQuotation' 
+    },
+    { 
+      id: 2, 
+      name: 'Medical', 
+      icon: '🏥', 
+      image: require('../../assets/images/health.png'),
+      color: Colors.success, 
+      screen: 'MedicalQuotation' 
+    },
+    { 
+      id: 3, 
+      name: 'WIBA', 
+      icon: '👷', 
+      image: require('../../assets/images/wiba.png'),
+      color: Colors.warning, 
+      screen: 'WIBAQuotation' 
+    },
+    { 
+      id: 4, 
+      name: 'Last Expense', 
+      icon: '⚰️', 
+      image: require('../../assets/images/funeral.png'),
+      color: Colors.secondary, 
+      screen: 'LastExpenseQuotation' 
+    },
+    { 
+      id: 5, 
+      name: 'Travel', 
+      icon: '✈️', 
+      color: Colors.info, 
+      screen: 'TravelQuotation' 
+    },
+    { 
+      id: 6, 
+      name: 'Personal Accident', 
+      icon: '🛡️', 
+      color: Colors.primary, 
+      screen: 'PersonalAccidentQuotation' 
+    },
+    { 
+      id: 7, 
+      name: 'Professional Indemnity', 
+      icon: '💼', 
+      color: Colors.success, 
+      screen: null 
+    },
+    { 
+      id: 8, 
+      name: 'Domestic Package', 
+      icon: '🏠', 
+      color: Colors.warning, 
+      screen: null 
+    }
   ];
 
   const campaigns = [
     {
       id: 1,
-      title: 'Special Drive',
-      description: 'Special vehicle insurance campaign with up to 20% discount',
+      title: 'Motor Vehicle Insurance',
+      description: 'Comprehensive vehicle protection with competitive rates',
+      category: 'Vehicle',
+      image: 'https://patabima.com/wp-content/uploads/2024/05/CAR.jpeg',
     },
     {
       id: 2,
-      title: 'Health Protection',
-      description: 'Comprehensive medical coverage for your family',
+      title: 'Crop Insurance',
+      description: 'Protect your agricultural investments against risks',
+      category: 'Agriculture',
+      image: 'https://patabima.com/wp-content/uploads/2024/11/crop.avif',
     },
     {
       id: 3,
-      title: 'Workers Cover',
-      description: 'WIBA insurance for workplace protection',
+      title: 'All-Risk Coverage',
+      description: 'Complete protection for all your valuable assets',
+      category: 'General',
+      image: 'https://patabima.com/wp-content/uploads/2024/11/all.avif',
+    },
+    {
+      id: 4,
+      title: 'Aviation Insurance',
+      description: 'Specialized coverage for aviation industry professionals',
+      category: 'Aviation',
+      image: 'https://patabima.com/wp-content/uploads/2024/11/aviation.avif',
+    },
+    {
+      id: 5,
+      title: 'Credit Risk Protection',
+      description: 'Safeguard your business against credit defaults',
+      category: 'Credit',
+      image: 'https://patabima.com/wp-content/uploads/2024/11/credit_risk.avif',
     }
   ];
 
@@ -102,21 +177,59 @@ export default function HomeScreen() {
     }
   ];
 
+  // Auto-scroll effect for categories
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentCategory((prev) => {
+        const nextIndex = (prev + 1) % insuranceCategories.length;
+        if (categoryScrollRef.current) {
+          categoryScrollRef.current.scrollToIndex({
+            index: nextIndex,
+            animated: true,
+          });
+        }
+        return nextIndex;
+      });
+    }, 3000); // Auto scroll every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   const renderCampaignCard = ({ item, index }) => (
     <View style={styles.campaignCard}>
-      <Text style={styles.campaignTitle}>{item.title}</Text>
-      <Text style={styles.campaignDescription}>{item.description}</Text>
+      <Image
+        source={{ uri: item.image }}
+        style={styles.campaignImage}
+        resizeMode="cover"
+      />
+      <View style={styles.campaignOverlay}>
+        <View style={styles.campaignContent}>
+          <Text style={styles.campaignTitle}>{item.title}</Text>
+          <Text style={styles.campaignDescription}>{item.description}</Text>
+        </View>
+      </View>
     </View>
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar style="dark" />
+    <SafeScreen>
+      <StatusBar style="light" />
+      
+      {/* Compact Curved Header */}
+      <CompactCurvedHeader 
+        title="PataBima Agency"
+        subtitle="Insurance for Protection"
+      />
+      
       <ScrollView 
         style={styles.scrollView} 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
       >
+        
+        {/* Spacing after curved header */}
+        <View style={styles.headerSpacing} />
+
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <Text style={styles.greeting}>Hello, Agent!</Text>
@@ -163,19 +276,40 @@ export default function HomeScreen() {
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Insurance Categories</Text>
           <FlatList
+            ref={categoryScrollRef}
             data={insuranceCategories}
-            renderItem={({ item }) => (
+            renderItem={({ item, index }) => (
               <TouchableOpacity 
-                style={styles.categoryCard}
+                style={[
+                  styles.categoryCard,
+                  index === currentCategory && styles.activeCategoryCard
+                ]}
                 onPress={() => {
-                  if (item.name === 'Motor Vehicle') {
-                    navigation.navigate('MotorQuotation');
+                  if (item.screen) {
+                    navigation.navigate(item.screen);
+                  } else {
+                    Alert.alert(
+                      'Coming Soon',
+                      `${item.name} insurance will be available soon!`,
+                      [{ text: 'OK' }]
+                    );
                   }
-                  // Add navigation for other categories later
                 }}
               >
-                <Text style={styles.categoryIcon}>{item.icon}</Text>
-                <Text style={styles.categoryName}>{item.name}</Text>
+                <View style={[
+                  styles.categoryIconContainer,
+                  index === currentCategory && styles.activeCategoryIconContainer
+                ]}>
+                  {item.image ? (
+                    <Image source={item.image} style={styles.categoryImage} resizeMode="contain" />
+                  ) : (
+                    <Text style={styles.categoryIcon}>{item.icon}</Text>
+                  )}
+                </View>
+                <Text style={[
+                  styles.categoryName,
+                  index === currentCategory && styles.activeCategoryName
+                ]}>{item.name}</Text>
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.id.toString()}
@@ -184,6 +318,17 @@ export default function HomeScreen() {
             contentContainerStyle={styles.categoriesSlider}
             snapToInterval={160}
             decelerationRate="fast"
+            snapToAlignment="center"
+            pagingEnabled={false}
+            getItemLayout={(data, index) => ({
+              length: 160,
+              offset: 160 * index,
+              index,
+            })}
+            onMomentumScrollEnd={(event) => {
+              const index = Math.round(event.nativeEvent.contentOffset.x / 160);
+              setCurrentCategory(index);
+            }}
           />
         </View>
 
@@ -271,7 +416,7 @@ export default function HomeScreen() {
         </View>
 
       </ScrollView>
-    </View>
+    </SafeScreen>
   );
 }
 
@@ -282,6 +427,12 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.md,
+  },
+  headerSpacing: {
+    height: Spacing.lg,
   },
   header: {
     padding: Spacing.lg,
@@ -327,7 +478,6 @@ const styles = StyleSheet.create({
     lineHeight: Typography.lineHeight.sm,
   },
   sectionContainer: {
-    paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
   },
   sectionTitle: {
@@ -343,37 +493,51 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   categoriesSlider: {
-    paddingLeft: Spacing.lg,
-    paddingRight: Spacing.lg,
+    paddingLeft: Spacing.md,
+    paddingRight: Spacing.md,
   },
   categoryCard: {
-    width: 120,
+    width: 140,
     backgroundColor: Colors.background,
-    borderWidth: 1.5,
-    borderRadius: 8,
-    padding: Spacing.md,
+    borderRadius: 16,
+    padding: Spacing.lg,
     alignItems: 'center',
-    marginRight: Spacing.md,
+    marginRight: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: Colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  categoryIcon: {
+  categoryIconContainer: {
     width: 50,
     height: 50,
     borderRadius: 25,
+    backgroundColor: Colors.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.sm,
   },
-  categoryIconText: {
-    color: Colors.background,
-    fontSize: Typography.fontSize.md,
-    fontFamily: Typography.fontFamily.bold,
-    lineHeight: Typography.lineHeight.md,
+  categoryImage: {
+    width: 30,
+    height: 30,
+    tintColor: Colors.primary,
+  },
+  categoryIcon: {
+    fontSize: 32,
+    marginBottom: Spacing.sm,
   },
   categoryName: {
     fontSize: Typography.fontSize.md,
     fontFamily: Typography.fontFamily.medium,
     color: Colors.textPrimary,
     lineHeight: Typography.lineHeight.md,
+    textAlign: 'center',
   },
   campaignCard: {
     backgroundColor: Colors.primaryLight,
@@ -382,29 +546,14 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: Colors.primary,
   },
-  campaignTitle: {
-    fontSize: Typography.fontSize.lg,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
-    lineHeight: Typography.lineHeight.lg,
-  },
-  campaignDescription: {
-    fontSize: Typography.fontSize.md,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.textSecondary,
-    lineHeight: Typography.lineHeight.md,
-  },
   scrollContent: {
     paddingBottom: Spacing.xl,
   },
   welcomeSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
+    paddingTop: Spacing.md,
     paddingBottom: Spacing.md,
   },
   agentSummaryCard: {
-    marginHorizontal: Spacing.lg,
     backgroundColor: Colors.background,
     borderRadius: 16,
     padding: Spacing.lg,
@@ -497,66 +646,59 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
     marginHorizontal: Spacing.md,
   },
-  categoriesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  categoriesSlider: {
-    paddingRight: Spacing.lg,
-  },
-  categoryCard: {
-    width: 140,
-    backgroundColor: Colors.primaryLight,
-    borderRadius: 16,
-    padding: Spacing.lg,
-    alignItems: 'center',
-    marginRight: Spacing.sm,
-  },
-  categoryIcon: {
-    fontSize: 32,
-    marginBottom: Spacing.sm,
-  },
-  categoryName: {
-    fontSize: Typography.fontSize.md,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.textPrimary,
-    lineHeight: Typography.lineHeight.md,
-    textAlign: 'center',
-  },
   campaignsSlider: {
-    paddingRight: Spacing.lg,
+    paddingLeft: Spacing.md,
+    paddingRight: Spacing.md,
   },
   campaignCard: {
-    backgroundColor: Colors.background,
-    padding: Spacing.lg,
-    borderRadius: 12,
+    width: 280,
+    height: 180,
+    borderRadius: 16,
     marginRight: Spacing.md,
-    width: 260,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
+    overflow: 'hidden',
     shadowColor: Colors.shadow,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  campaignImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  campaignOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
+  },
+  campaignContent: {
+    padding: Spacing.lg,
+    justifyContent: 'flex-end',
+    flex: 1,
   },
   campaignTitle: {
-    fontSize: Typography.fontSize.lg,
+    fontSize: Typography.fontSize.xl,
     fontFamily: Typography.fontFamily.bold,
-    color: Colors.textPrimary,
+    color: Colors.white,
     marginBottom: Spacing.sm,
-    lineHeight: Typography.lineHeight.lg,
+    lineHeight: Typography.lineHeight.xl,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
   campaignDescription: {
     fontSize: Typography.fontSize.md,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.lg,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.white,
     lineHeight: Typography.lineHeight.md,
+    opacity: 0.95,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
   campaignButton: {
     backgroundColor: Colors.primary,
@@ -713,5 +855,27 @@ const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.medium,
     color: Colors.primary,
     lineHeight: Typography.lineHeight.sm,
+  },
+  activeCategoryCard: {
+    borderColor: Colors.primary,
+    borderWidth: 2,
+    backgroundColor: Colors.primary + '08',
+    transform: [{ scale: 1.05 }],
+    shadowColor: Colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+  },
+  activeCategoryIconContainer: {
+    backgroundColor: Colors.primary,
+    transform: [{ scale: 1.1 }],
+  },
+  activeCategoryName: {
+    color: Colors.primary,
+    fontFamily: Typography.fontFamily.bold,
   },
 });
