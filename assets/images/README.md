@@ -1,4 +1,29 @@
-# Insurance Welcome Screen Images & Icons
+# Insurance Category Images & Assets
+
+## 📋 Quick Reference
+For complete documentation of all image assets, see: [IMAGE_ASSETS_DOCUMENTATION.md](./IMAGE_ASSETS_DOCUMENTATION.md)
+
+## ✅ Current Status (July 19, 2025)
+- **Total Categories**: 8
+- **Images Available**: 8 (100% coverage)
+- **All categories now have proper image assets**
+
+## 🖼️ Category Images
+
+| Category | File | Status |
+|----------|------|--------|
+| Motor Vehicle | `motor.png` | ✅ Active |
+| Medical | `health.png` | ✅ Active |
+| WIBA | `wiba.png` | ✅ Active |
+| Last Expense | `funeral.png` | ✅ Active |
+| Travel | `travel.png` | ✅ Added |
+| Personal Accident | `accident.png` | ✅ Added |
+| Professional Indemnity | `professional.png` | ✅ Added |
+| Domestic Package | `home.png` | ✅ Added |
+
+---
+
+# Previous Implementation (Historical Reference)
 
 ## Current Implementation (Final - Black African Focus + Emoji Icons)
 The app now uses professional, insurance-specific images from Unsplash featuring Black African people in authentic insurance-related contexts, combined with clean emoji icons for clear visual representation. This provides strong cultural representation and intuitive iconography for PataBima's target market.

@@ -147,7 +147,7 @@ export const INSURANCE_CATEGORIES = [
     shortName: 'Travel',
     description: 'Comprehensive travel protection for domestic and international trips',
     icon: '✈️',
-    image: null, // To be added
+    image: require('../../assets/images/travel.png'),
     color: Colors.info,
     type: CATEGORY_TYPES.GENERAL,
     status: CATEGORY_STATUS.COMING_SOON,
@@ -169,7 +169,7 @@ export const INSURANCE_CATEGORIES = [
     shortName: 'Accident',
     description: 'Personal accident insurance for unexpected injuries',
     icon: '🛡️',
-    image: null, // To be added
+    image: require('../../assets/images/accident.png'),
     color: Colors.primary,
     type: CATEGORY_TYPES.GENERAL,
     status: CATEGORY_STATUS.COMING_SOON,
@@ -191,7 +191,7 @@ export const INSURANCE_CATEGORIES = [
     shortName: 'Professional',
     description: 'Professional liability insurance for businesses and professionals',
     icon: '💼',
-    image: null, // To be added
+    image: require('../../assets/images/professional.png'),
     color: Colors.success,
     type: CATEGORY_TYPES.COMMERCIAL,
     status: CATEGORY_STATUS.COMING_SOON,
@@ -213,7 +213,7 @@ export const INSURANCE_CATEGORIES = [
     shortName: 'Home',
     description: 'Comprehensive home and domestic property insurance',
     icon: '🏠',
-    image: null, // To be added
+    image: require('../../assets/images/home.png'),
     color: Colors.warning,
     type: CATEGORY_TYPES.GENERAL,
     status: CATEGORY_STATUS.COMING_SOON,
