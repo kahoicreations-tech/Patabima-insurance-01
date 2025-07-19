@@ -77,16 +77,19 @@ const styles = StyleSheet.create({
   // Standard list card styles
   card: {
     backgroundColor: Colors.white,
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 16,
-    marginVertical: 8,
-    elevation: 2,
+    marginVertical: 6,
+    marginHorizontal: 8,
+    elevation: 3,
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
     borderWidth: 1,
     borderColor: Colors.border,
+    width: '100%',
+    maxWidth: 400, // Limit maximum width
   },
   cardSelected: {
     borderColor: Colors.primary,

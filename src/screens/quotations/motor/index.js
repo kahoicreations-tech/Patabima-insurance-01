@@ -1,0 +1,9 @@
+/**
+ * Export all motor insurance related screens and components
+ */
+
+export { default as MotorQuotationScreen } from './MotorQuotationScreen';
+export { default as MotorCategorySelectionScreen } from './MotorCategorySelectionScreen';
+export { default as MotorProductSelectionScreen } from './MotorProductSelectionScreen';
+export { default as CheckInsuranceStatusScreen } from './CheckInsuranceStatusScreen';
+export * from './data';

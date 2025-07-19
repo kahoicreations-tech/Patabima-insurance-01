@@ -6,6 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography } from '../../constants';
 import { SafeScreen, EnhancedCard, StatCard, StatusBadge, CompactCurvedHeader } from '../../components';
 import { MOCK_AGENT, MOCK_RENEWALS, MOCK_EXTENSIONS, MOCK_CLAIMS } from '../../data/mockData';
+import { 
+  INSURANCE_CATEGORIES, 
+  CATEGORY_STATUS, 
+  getActiveCategories, 
+  getCategoryStatusMessage 
+} from '../../data/insuranceCategories';
 
 export default function HomeScreen() {
   const [currentCampaign, setCurrentCampaign] = useState(0);
@@ -22,16 +28,15 @@ export default function HomeScreen() {
     nextPayout: MOCK_AGENT.nextPayout
   };
 
-  const insuranceCategories = [
-    { id: 1, name: 'Motor Vehicle', icon: '🚗', color: Colors.primary, screen: 'MotorQuotation' },
-    { id: 2, name: 'Medical', icon: '🏥', color: Colors.success, screen: 'MedicalQuotation' },
-    { id: 3, name: 'WIBA', icon: '👷', color: Colors.warning, screen: 'WIBAQuotation' },
-    { id: 4, name: 'Last Expense', icon: '⚰️', color: Colors.secondary, screen: 'LastExpenseQuotation' },
-    { id: 5, name: 'Travel', icon: '✈️', color: Colors.info, screen: 'TravelQuotation' },
-    { id: 6, name: 'Personal Accident', icon: '🛡️', color: Colors.primary, screen: 'PersonalAccidentQuotation' },
-    { id: 7, name: 'Professional Indemnity', icon: '💼', color: Colors.success, screen: null },
-    { id: 8, name: 'Domestic Package', icon: '🏠', color: Colors.warning, screen: null }
-  ];
+  // Get insurance categories from centralized data
+  const insuranceCategories = INSURANCE_CATEGORIES.map(category => ({
+    id: category.id,
+    name: category.name,
+    icon: category.icon,
+    color: category.color,
+    screen: category.screen,
+    status: category.status
+  }));
 
   // Auto-slide effect for insurance categories
   useEffect(() => {
@@ -249,12 +254,33 @@ export default function HomeScreen() {
                   currentCategory === index && styles.activeCategoryCard
                 ]}
                 onPress={() => {
-                  // Show maintenance alert for all insurance categories
-                  Alert.alert(
-                    'Feature Under Development',
-                    `${item.name} insurance is currently under development. We are working to bring you this feature soon!`,
-                    [{ text: 'OK', style: 'default' }]
-                  );
+                  if (item.status === CATEGORY_STATUS.ACTIVE && item.screen) {
+                    // Navigate to the quotation screen for active categories
+                    navigation.navigate(item.screen);
+                  } else {
+                    // Show appropriate status message for non-active categories
+                    const statusMessage = getCategoryStatusMessage(item);
+                    const alertTitle = item.status === CATEGORY_STATUS.MAINTENANCE 
+                      ? 'Under Maintenance' 
+                      : item.status === CATEGORY_STATUS.COMING_SOON 
+                        ? 'Coming Soon' 
+                        : 'Unavailable';
+                    
+                    Alert.alert(
+                      alertTitle,
+                      statusMessage,
+                      [
+                        { text: 'OK', style: 'default' },
+                        { text: 'Get Notified', onPress: () => {
+                          Alert.alert(
+                            'Notification Set',
+                            `You will be notified when ${item.name} insurance is available.`,
+                            [{ text: 'OK' }]
+                          );
+                        }}
+                      ]
+                    );
+                  }
                 }}
                 elevated={true}
                 padding={Spacing.md}

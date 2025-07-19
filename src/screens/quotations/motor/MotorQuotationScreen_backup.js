@@ -17,14 +17,14 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Colors, Spacing, Typography } from '../../constants';
+import { Colors, Spacing, Typography } from '../../../constants';
 import {
   useMotorInsuranceForm,
   useStepperNavigation,
   useVehicleVerification,
   usePremiumCalculation,
   useDocumentUpload
-} from '../../hooks';
+} from '../../../hooks';
 import {
   calculateBasicPremium,
   getVehicleAgeFactor,
@@ -33,7 +33,7 @@ import {
   calculateLevies,
   calculateTotalLevies,
   generatePolicyNumber
-} from '../../utils';
+} from '../../../utils';
 
 export default function MotorQuotationScreen({ navigation }) {
   // Safe area and responsive dimensions

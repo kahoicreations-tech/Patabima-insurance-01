@@ -63,7 +63,7 @@ export const INSURANCE_CATEGORIES = [
     color: Colors.primary,
     type: CATEGORY_TYPES.MOTOR,
     status: CATEGORY_STATUS.ACTIVE,
-    screen: 'MotorQuotation',
+    screen: 'MotorCategorySelection',
     isPopular: true,
     commissionRate: 0.15, // 15%
     minimumPremium: 15000,
@@ -84,7 +84,7 @@ export const INSURANCE_CATEGORIES = [
     image: require('../../assets/images/health.png'),
     color: Colors.success,
     type: CATEGORY_TYPES.HEALTH,
-    status: CATEGORY_STATUS.MAINTENANCE,
+    status: CATEGORY_STATUS.ACTIVE,
     screen: 'MedicalQuotation',
     isPopular: true,
     commissionRate: 0.12, // 12%
@@ -106,7 +106,7 @@ export const INSURANCE_CATEGORIES = [
     image: require('../../assets/images/wiba.png'),
     color: Colors.warning,
     type: CATEGORY_TYPES.COMMERCIAL,
-    status: CATEGORY_STATUS.MAINTENANCE,
+    status: CATEGORY_STATUS.ACTIVE,
     screen: 'WIBAQuotation',
     isPopular: false,
     commissionRate: 0.10, // 10%
@@ -128,7 +128,7 @@ export const INSURANCE_CATEGORIES = [
     image: require('../../assets/images/funeral.png'),
     color: Colors.secondary,
     type: CATEGORY_TYPES.LIFE,
-    status: CATEGORY_STATUS.MAINTENANCE,
+    status: CATEGORY_STATUS.ACTIVE,
     screen: 'LastExpenseQuotation',
     isPopular: false,
     commissionRate: 0.08, // 8%
@@ -150,7 +150,7 @@ export const INSURANCE_CATEGORIES = [
     image: require('../../assets/images/travel.png'),
     color: Colors.info,
     type: CATEGORY_TYPES.GENERAL,
-    status: CATEGORY_STATUS.COMING_SOON,
+    status: CATEGORY_STATUS.ACTIVE,
     screen: 'TravelQuotation',
     isPopular: true,
     commissionRate: 0.20, // 20%
@@ -172,7 +172,7 @@ export const INSURANCE_CATEGORIES = [
     image: require('../../assets/images/accident.png'),
     color: Colors.primary,
     type: CATEGORY_TYPES.GENERAL,
-    status: CATEGORY_STATUS.COMING_SOON,
+    status: CATEGORY_STATUS.ACTIVE,
     screen: 'PersonalAccidentQuotation',
     isPopular: false,
     commissionRate: 0.18, // 18%
@@ -194,8 +194,8 @@ export const INSURANCE_CATEGORIES = [
     image: require('../../assets/images/professional.png'),
     color: Colors.success,
     type: CATEGORY_TYPES.COMMERCIAL,
-    status: CATEGORY_STATUS.COMING_SOON,
-    screen: null,
+    status: CATEGORY_STATUS.ACTIVE,
+    screen: 'ProfessionalIndemnityQuotation',
     isPopular: false,
     commissionRate: 0.14, // 14%
     minimumPremium: 20000,
@@ -216,8 +216,8 @@ export const INSURANCE_CATEGORIES = [
     image: require('../../assets/images/home.png'),
     color: Colors.warning,
     type: CATEGORY_TYPES.GENERAL,
-    status: CATEGORY_STATUS.COMING_SOON,
-    screen: null,
+    status: CATEGORY_STATUS.ACTIVE,
+    screen: 'DomesticPackageQuotation',
     isPopular: false,
     commissionRate: 0.12, // 12%
     minimumPremium: 15000,

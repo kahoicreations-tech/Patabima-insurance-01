@@ -10,6 +10,8 @@ import {
   UpcomingScreen, 
   MyAccountScreen, 
   MotorQuotationScreen, 
+  MotorCategorySelectionScreen,
+  MotorProductSelectionScreen,
   MedicalQuotationScreen, 
   WIBAQuotationScreen, 
   TravelQuotationScreen, 
@@ -169,6 +171,8 @@ function HomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeMain" component={HomeScreen} />
+      <Stack.Screen name="MotorCategorySelection" component={MotorCategorySelectionScreen} />
+      <Stack.Screen name="MotorProductSelection" component={MotorProductSelectionScreen} />
       <Stack.Screen name="MotorQuotation" component={MotorQuotationScreen} />
       <Stack.Screen name="MedicalQuotation" component={MedicalQuotationScreen} />
       <Stack.Screen name="WIBAQuotation" component={WIBAQuotationScreen} />

@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 12, // Reduced from 16 to 12 for more compact design
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
@@ -68,9 +68,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stepperCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',

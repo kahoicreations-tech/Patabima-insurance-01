@@ -37,6 +37,8 @@ export { SplashScreen, InsuranceWelcomeScreen, LoginScreen, SignupScreen, Forgot
 // Quotation Screens
 export { 
   MotorQuotationScreen, 
+  MotorCategorySelectionScreen,
+  MotorProductSelectionScreen,
   MedicalQuotationScreen, 
   WIBAQuotationScreen, 
   TravelQuotationScreen, 

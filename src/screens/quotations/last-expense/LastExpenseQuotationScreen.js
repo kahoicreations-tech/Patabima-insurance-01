@@ -12,10 +12,10 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Colors, Typography, Spacing } from '../../constants';
-import { PricingService } from '../../services';
+import { Colors, Typography, Spacing } from '../../../constants';
+import { PricingService } from '../../../services';
 
-export default function PersonalAccidentQuotationScreen() {
+export default function LastExpenseQuotationScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
@@ -31,36 +31,90 @@ export default function PersonalAccidentQuotationScreen() {
     phone: '',
     idNumber: '',
     dateOfBirth: '',
-    occupation: '',
+    maritalStatus: '',
     
     // Step 2: Coverage Selection
     coverageAmount: '',
-    beneficiaries: [],
+    additionalBenefits: [],
     
-    // Step 3: Risk Assessment
-    lifestyle: '',
-    healthConditions: '',
-    hazardousActivities: '',
+    // Step 3: Beneficiaries & Payment
+    beneficiaries: [],
+    paymentFrequency: '',
     
     // Step 4: Premium calculation
     totalPremium: 0
   });
 
+  // Coverage Options with PataBima Last Expense Rates
   const coverageOptions = [
-    { id: 1, amount: 500000, premium: 3500, name: 'Basic Coverage - KES 500,000' },
-    { id: 2, amount: 1000000, premium: 6000, name: 'Standard Coverage - KES 1,000,000' },
-    { id: 3, amount: 2000000, premium: 10000, name: 'Premium Coverage - KES 2,000,000' },
-    { id: 4, amount: 5000000, premium: 20000, name: 'Platinum Coverage - KES 5,000,000' }
+    { 
+      id: 1, 
+      amount: PricingService.lastExpense.basePremiums.basic.coverage, 
+      premium: PricingService.lastExpense.basePremiums.basic.premium, 
+      name: `Basic Coverage - KES ${PricingService.lastExpense.basePremiums.basic.coverage.toLocaleString()}` 
+    },
+    { 
+      id: 2, 
+      amount: PricingService.lastExpense.basePremiums.standard.coverage, 
+      premium: PricingService.lastExpense.basePremiums.standard.premium, 
+      name: `Standard Coverage - KES ${PricingService.lastExpense.basePremiums.standard.coverage.toLocaleString()}` 
+    },
+    { 
+      id: 3, 
+      amount: PricingService.lastExpense.basePremiums.premium.coverage, 
+      premium: PricingService.lastExpense.basePremiums.premium.premium, 
+      name: `Premium Coverage - KES ${PricingService.lastExpense.basePremiums.premium.coverage.toLocaleString()}` 
+    },
+    { 
+      id: 4, 
+      amount: PricingService.lastExpense.basePremiums.comprehensive.coverage, 
+      premium: PricingService.lastExpense.basePremiums.comprehensive.premium, 
+      name: `Comprehensive Coverage - KES ${PricingService.lastExpense.basePremiums.comprehensive.coverage.toLocaleString()}` 
+    }
   ];
 
-  const occupationRisk = {
-    'low': { name: 'Office Worker/Teacher/Accountant', multiplier: 1.0 },
-    'medium': { name: 'Driver/Mechanic/Sales', multiplier: 1.3 },
-    'high': { name: 'Construction/Mining/Security', multiplier: 1.8 }
-  };
+  // Additional Benefits with PataBima rates
+  const additionalBenefits = [
+    { 
+      id: 1, 
+      name: 'Funeral Service Arrangement', 
+      premium: PricingService.lastExpense.additionalBenefits.funeral_arrangement 
+    },
+    { 
+      id: 2, 
+      name: 'Repatriation of Remains', 
+      premium: PricingService.lastExpense.additionalBenefits.repatriation 
+    },
+    { 
+      id: 3, 
+      name: 'Grief Counseling', 
+      premium: PricingService.lastExpense.additionalBenefits.grief_counseling 
+    },
+    { 
+      id: 4, 
+      name: 'Memorial Service Coverage', 
+      premium: PricingService.lastExpense.additionalBenefits.memorial_service 
+    }
+  ];
+
+  const paymentFrequencies = [
+    { id: 'monthly', name: 'Monthly', multiplier: 1 },
+    { id: 'quarterly', name: 'Quarterly', multiplier: 0.97 },
+    { id: 'semi-annual', name: 'Semi-Annual', multiplier: 0.94 },
+    { id: 'annual', name: 'Annual', multiplier: 0.90 }
+  ];
 
   const updateFormData = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const toggleAdditionalBenefit = (benefitId) => {
+    setFormData(prev => ({
+      ...prev,
+      additionalBenefits: prev.additionalBenefits.includes(benefitId)
+        ? prev.additionalBenefits.filter(id => id !== benefitId)
+        : [...prev.additionalBenefits, benefitId]
+    }));
   };
 
   const calculatePremium = () => {
@@ -69,29 +123,22 @@ export default function PersonalAccidentQuotationScreen() {
 
     let premium = selectedCoverage.premium;
     
-    // Age factor
-    const age = calculateAge(formData.dateOfBirth);
-    if (age > 60) premium *= 1.8;
-    else if (age > 45) premium *= 1.4;
-    else if (age > 30) premium *= 1.1;
-    
-    // Occupation risk
-    let occupationMultiplier = 1.0;
-    Object.values(occupationRisk).forEach(risk => {
-      if (formData.occupation === risk.name) {
-        occupationMultiplier = risk.multiplier;
-      }
+    // Additional benefits (PataBima rates)
+    formData.additionalBenefits.forEach(benefitId => {
+      const benefit = additionalBenefits.find(b => b.id === benefitId);
+      if (benefit) premium += benefit.premium;
     });
-    premium *= occupationMultiplier;
     
-    // Health conditions
-    if (formData.healthConditions && formData.healthConditions.length > 10) {
-      premium *= 1.3;
-    }
+    // Age factor using PataBima underwriter rates
+    const age = PricingService.calculateAge(formData.dateOfBirth);
+    const ageFactor = PricingService.getAgeGroup(age, PricingService.lastExpense.ageFactors);
+    premium *= ageFactor;
     
-    // Hazardous activities
-    if (formData.hazardousActivities === 'yes') {
-      premium *= 1.5;
+    // Payment frequency discount (PataBima standard)
+    const paymentFreq = paymentFrequencies.find(pf => pf.id === formData.paymentFrequency);
+    if (paymentFreq) {
+      const discountMultiplier = PricingService.lastExpense.paymentFrequencyDiscounts[formData.paymentFrequency] || paymentFreq.multiplier;
+      premium *= discountMultiplier;
     }
 
     return Math.round(premium);
@@ -128,7 +175,7 @@ export default function PersonalAccidentQuotationScreen() {
   const submitQuotation = () => {
     Alert.alert(
       'Quotation Submitted',
-      `Your personal accident insurance quotation has been submitted successfully. Premium: KES ${formData.totalPremium.toLocaleString()}`,
+      `Your last expense insurance quotation has been submitted successfully. Premium: KES ${formData.totalPremium.toLocaleString()}`,
       [
         {
           text: 'OK',
@@ -261,26 +308,26 @@ export default function PersonalAccidentQuotationScreen() {
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Occupation</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsContainer}>
-          {Object.values(occupationRisk).map((risk, index) => (
+        <Text style={styles.inputLabel}>Marital Status</Text>
+        <View style={styles.optionsGrid}>
+          {['Single', 'Married', 'Divorced', 'Widowed'].map((status) => (
             <TouchableOpacity
-              key={index}
+              key={status}
               style={[
-                styles.optionButton,
-                formData.occupation === risk.name && styles.optionButtonActive
+                styles.gridOption,
+                formData.maritalStatus === status && styles.gridOptionActive
               ]}
-              onPress={() => updateFormData('occupation', risk.name)}
+              onPress={() => updateFormData('maritalStatus', status)}
             >
               <Text style={[
-                styles.optionText,
-                formData.occupation === risk.name && styles.optionTextActive
+                styles.gridOptionText,
+                formData.maritalStatus === status && styles.gridOptionTextActive
               ]}>
-                {risk.name}
+                {status}
               </Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
       </View>
     </View>
   );
@@ -288,8 +335,9 @@ export default function PersonalAccidentQuotationScreen() {
   const renderStep2 = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Coverage Selection</Text>
-      <Text style={styles.stepSubtitle}>Choose your coverage amount</Text>
+      <Text style={styles.stepSubtitle}>Choose your coverage amount and additional benefits</Text>
       
+      <Text style={styles.sectionTitle}>Coverage Amount</Text>
       {coverageOptions.map((option) => (
         <TouchableOpacity
           key={option.id}
@@ -304,6 +352,38 @@ export default function PersonalAccidentQuotationScreen() {
         </TouchableOpacity>
       ))}
 
+      <Text style={styles.sectionTitle}>Additional Benefits</Text>
+      {additionalBenefits.map((benefit) => (
+        <TouchableOpacity
+          key={benefit.id}
+          style={[
+            styles.benefitCard,
+            formData.additionalBenefits.includes(benefit.id) && styles.benefitCardActive
+          ]}
+          onPress={() => toggleAdditionalBenefit(benefit.id)}
+        >
+          <View style={styles.benefitInfo}>
+            <Text style={styles.benefitName}>{benefit.name}</Text>
+            <Text style={styles.benefitPrice}>+KES {benefit.premium.toLocaleString()}/year</Text>
+          </View>
+          <View style={[
+            styles.checkbox,
+            formData.additionalBenefits.includes(benefit.id) && styles.checkboxActive
+          ]}>
+            {formData.additionalBenefits.includes(benefit.id) && (
+              <Text style={styles.checkmark}>✓</Text>
+            )}
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const renderStep3 = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>Beneficiaries & Payment</Text>
+      <Text style={styles.stepSubtitle}>Add beneficiaries and select payment frequency</Text>
+      
       <View style={styles.inputContainer}>
         <Text style={styles.inputLabel}>Beneficiaries</Text>
         
@@ -347,82 +427,26 @@ export default function PersonalAccidentQuotationScreen() {
           <Text style={styles.addButtonText}>+ Add Beneficiary</Text>
         </TouchableOpacity>
       </View>
-    </View>
-  );
-
-  const renderStep3 = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Risk Assessment</Text>
-      <Text style={styles.stepSubtitle}>Help us assess your risk profile</Text>
-      
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Lifestyle</Text>
-        <View style={styles.optionsGrid}>
-          {['Sedentary', 'Active', 'Very Active', 'Athletic'].map((lifestyle) => (
-            <TouchableOpacity
-              key={lifestyle}
-              style={[
-                styles.gridOption,
-                formData.lifestyle === lifestyle && styles.gridOptionActive
-              ]}
-              onPress={() => updateFormData('lifestyle', lifestyle)}
-            >
-              <Text style={[
-                styles.gridOptionText,
-                formData.lifestyle === lifestyle && styles.gridOptionTextActive
-              ]}>
-                {lifestyle}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Health Conditions</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          value={formData.healthConditions}
-          onChangeText={(text) => updateFormData('healthConditions', text)}
-          placeholder="List any health conditions (optional)"
-          multiline
-          numberOfLines={3}
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Do you participate in hazardous activities?</Text>
-        <Text style={styles.inputHelper}>e.g., extreme sports, dangerous hobbies</Text>
-        <View style={styles.radioGroup}>
+        <Text style={styles.inputLabel}>Payment Frequency</Text>
+        <Text style={styles.inputHelper}>Select how often you want to pay premiums</Text>
+        
+        {paymentFrequencies.map((frequency) => (
           <TouchableOpacity
+            key={frequency.id}
             style={[
-              styles.radioOption,
-              formData.hazardousActivities === 'yes' && styles.radioOptionActive
+              styles.paymentCard,
+              formData.paymentFrequency === frequency.id && styles.paymentCardActive
             ]}
-            onPress={() => updateFormData('hazardousActivities', 'yes')}
+            onPress={() => updateFormData('paymentFrequency', frequency.id)}
           >
-            <Text style={[
-              styles.radioText,
-              formData.hazardousActivities === 'yes' && styles.radioTextActive
-            ]}>
-              Yes
+            <Text style={styles.paymentName}>{frequency.name}</Text>
+            <Text style={styles.paymentDiscount}>
+              {frequency.multiplier < 1 ? `${Math.round((1 - frequency.multiplier) * 100)}% discount` : 'Standard rate'}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.radioOption,
-              formData.hazardousActivities === 'no' && styles.radioOptionActive
-            ]}
-            onPress={() => updateFormData('hazardousActivities', 'no')}
-          >
-            <Text style={[
-              styles.radioText,
-              formData.hazardousActivities === 'no' && styles.radioTextActive
-            ]}>
-              No
-            </Text>
-          </TouchableOpacity>
-        </View>
+        ))}
       </View>
     </View>
   );
@@ -430,7 +454,7 @@ export default function PersonalAccidentQuotationScreen() {
   const renderStep4 = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Premium Calculation</Text>
-      <Text style={styles.stepSubtitle}>Your personal accident insurance quotation</Text>
+      <Text style={styles.stepSubtitle}>Your last expense insurance quotation</Text>
       
       <View style={styles.summaryCard}>
         <Text style={styles.summaryTitle}>Policy Summary</Text>
@@ -446,8 +470,15 @@ export default function PersonalAccidentQuotationScreen() {
         </View>
         
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Occupation:</Text>
-          <Text style={styles.summaryValue}>{formData.occupation}</Text>
+          <Text style={styles.summaryLabel}>Additional Benefits:</Text>
+          <Text style={styles.summaryValue}>{formData.additionalBenefits.length} selected</Text>
+        </View>
+        
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Payment Frequency:</Text>
+          <Text style={styles.summaryValue}>
+            {paymentFrequencies.find(pf => pf.id === formData.paymentFrequency)?.name || 'Not selected'}
+          </Text>
         </View>
         
         <View style={styles.divider} />
@@ -457,15 +488,17 @@ export default function PersonalAccidentQuotationScreen() {
           <Text style={styles.totalValue}>KES {formData.totalPremium.toLocaleString()}</Text>
         </View>
         
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Monthly Premium:</Text>
-          <Text style={styles.summaryValue}>KES {Math.round(formData.totalPremium / 12).toLocaleString()}</Text>
-        </View>
+        {formData.paymentFrequency === 'monthly' && (
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Monthly Premium:</Text>
+            <Text style={styles.summaryValue}>KES {Math.round(formData.totalPremium / 12).toLocaleString()}</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.disclaimerContainer}>
         <Text style={styles.disclaimerText}>
-          This is a preliminary quotation. Final premium may vary based on medical examination and underwriting.
+          Last expense insurance provides immediate financial assistance to your family to cover funeral and burial costs. This quotation is valid for 30 days.
         </Text>
       </View>
     </View>
@@ -493,7 +526,7 @@ export default function PersonalAccidentQuotationScreen() {
         >
           <Text style={styles.headerBackText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Personal Accident Insurance</Text>
+        <Text style={styles.headerTitle}>Last Expense Insurance</Text>
         <View style={styles.headerRight} />
       </View>
 
@@ -617,6 +650,13 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: Spacing.lg,
   },
+  sectionTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: Typography.fontWeight.semibold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.md,
+    marginTop: Spacing.lg,
+  },
   inputContainer: {
     marginBottom: Spacing.md,
   },
@@ -640,34 +680,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     backgroundColor: '#FFFFFF',
     marginBottom: Spacing.sm,
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  optionsContainer: {
-    marginTop: Spacing.xs,
-  },
-  optionButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    backgroundColor: '#F9FAFB',
-    borderRadius: Spacing.xs,
-    marginRight: Spacing.sm,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  optionButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  optionText: {
-    fontSize: Typography.fontSize.sm,
-    fontWeight: Typography.fontWeight.medium,
-    color: Colors.textPrimary,
-  },
-  optionTextActive: {
-    color: '#FFFFFF',
   },
   optionsGrid: {
     flexDirection: 'row',
@@ -719,6 +731,53 @@ const styles = StyleSheet.create({
     fontWeight: Typography.fontWeight.bold,
     color: Colors.primary,
   },
+  benefitCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F9FAFB',
+    borderRadius: Spacing.xs,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  benefitCardActive: {
+    backgroundColor: '#FEF2F2',
+    borderColor: Colors.primary,
+  },
+  benefitInfo: {
+    flex: 1,
+  },
+  benefitName: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: Typography.fontWeight.medium,
+    color: Colors.textPrimary,
+    marginBottom: 2,
+  },
+  benefitPrice: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: Typography.fontWeight.medium,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  checkmark: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   beneficiaryCard: {
     backgroundColor: '#F9FAFB',
     borderRadius: Spacing.xs,
@@ -761,30 +820,28 @@ const styles = StyleSheet.create({
     fontWeight: Typography.fontWeight.medium,
     color: Colors.primary,
   },
-  radioGroup: {
-    flexDirection: 'row',
-    marginTop: Spacing.xs,
-  },
-  radioOption: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+  paymentCard: {
     backgroundColor: '#F9FAFB',
     borderRadius: Spacing.xs,
-    marginRight: Spacing.sm,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
-  radioOptionActive: {
-    backgroundColor: Colors.primary,
+  paymentCardActive: {
+    backgroundColor: '#FEF2F2',
     borderColor: Colors.primary,
   },
-  radioText: {
+  paymentName: {
     fontSize: Typography.fontSize.md,
-    fontWeight: Typography.fontWeight.medium,
+    fontWeight: Typography.fontWeight.semibold,
     color: Colors.textPrimary,
+    marginBottom: 2,
   },
-  radioTextActive: {
-    color: '#FFFFFF',
+  paymentDiscount: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.success,
+    fontWeight: Typography.fontWeight.medium,
   },
   summaryCard: {
     backgroundColor: '#F9FAFB',

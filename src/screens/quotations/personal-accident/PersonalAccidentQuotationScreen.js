@@ -7,20 +7,20 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  SafeAreaView,
-  StatusBar
+  SafeAreaView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Typography, Spacing } from '../../constants';
-import { PricingService } from '../../services';
+import { StatusBar } from 'expo-status-bar';
+import { Colors, Typography, Spacing } from '../../../constants';
+import { PricingService } from '../../../services';
 
-export default function TravelQuotationScreen() {
+export default function PersonalAccidentQuotationScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 5;
+  const totalSteps = 4;
 
   // Form Data
   const [formData, setFormData] = useState({
@@ -31,118 +31,87 @@ export default function TravelQuotationScreen() {
     phone: '',
     idNumber: '',
     dateOfBirth: '',
+    occupation: '',
     
-    // Step 2: Travel Details
-    destination: '',
-    travelType: '',
-    departureDate: '',
-    returnDate: '',
-    tripDuration: 0,
-    tripPurpose: '',
+    // Step 2: Coverage Selection
+    coverageAmount: '',
+    beneficiaries: [],
     
-    // Step 3: Coverage Selection
-    coverageType: '',
-    medicalCoverage: '',
-    baggageCoverage: '',
-    tripCancellationCoverage: '',
+    // Step 3: Risk Assessment
+    lifestyle: '',
+    healthConditions: '',
+    hazardousActivities: '',
     
-    // Step 4: Additional Information
-    preExistingConditions: '',
-    highRiskActivities: '',
-    travelHistory: '',
-    emergencyContact: '',
-    
-    // Step 5: Premium calculation
-    basePremium: 0,
+    // Step 4: Premium calculation
     totalPremium: 0
   });
 
-  const destinations = [
-    { id: 1, name: 'Europe', riskMultiplier: 1.2 },
-    { id: 2, name: 'North America', riskMultiplier: 1.3 },
-    { id: 3, name: 'Asia', riskMultiplier: 1.1 },
-    { id: 4, name: 'Africa', riskMultiplier: 1.0 },
-    { id: 5, name: 'South America', riskMultiplier: 1.4 },
-    { id: 6, name: 'Australia/Oceania', riskMultiplier: 1.3 },
-    { id: 7, name: 'Middle East', riskMultiplier: 1.5 }
+  const coverageOptions = [
+    { id: 1, amount: 500000, premium: 3500, name: 'Basic Coverage - KES 500,000' },
+    { id: 2, amount: 1000000, premium: 6000, name: 'Standard Coverage - KES 1,000,000' },
+    { id: 3, amount: 2000000, premium: 10000, name: 'Premium Coverage - KES 2,000,000' },
+    { id: 4, amount: 5000000, premium: 20000, name: 'Platinum Coverage - KES 5,000,000' }
   ];
 
-  const travelTypes = [
-    { id: 1, name: 'Single Trip', multiplier: 1.0 },
-    { id: 2, name: 'Multi Trip (Annual)', multiplier: 2.5 },
-    { id: 3, name: 'Business Travel', multiplier: 1.3 },
-    { id: 4, name: 'Family Travel', multiplier: 1.8 }
-  ];
-
-  const coverageTypes = [
-    {
-      id: 1,
-      name: 'Basic',
-      price: 2500,
-      medical: 'KES 500,000',
-      baggage: 'KES 50,000',
-      cancellation: 'KES 100,000'
-    },
-    {
-      id: 2,
-      name: 'Standard',
-      price: 4500,
-      medical: 'KES 1,000,000',
-      baggage: 'KES 100,000',
-      cancellation: 'KES 200,000'
-    },
-    {
-      id: 3,
-      name: 'Premium',
-      price: 7500,
-      medical: 'KES 2,000,000',
-      baggage: 'KES 200,000',
-      cancellation: 'KES 500,000'
-    }
-  ];
+  const occupationRisk = {
+    'low': { name: 'Office Worker/Teacher/Accountant', multiplier: 1.0 },
+    'medium': { name: 'Driver/Mechanic/Sales', multiplier: 1.3 },
+    'high': { name: 'Construction/Mining/Security', multiplier: 1.8 }
+  };
 
   const updateFormData = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const calculatePremium = () => {
-    const selectedDestination = destinations.find(d => d.name === formData.destination);
-    const selectedTravelType = travelTypes.find(t => t.name === formData.travelType);
-    const selectedCoverage = coverageTypes.find(c => c.name === formData.coverageType);
-    
-    if (!selectedDestination || !selectedTravelType || !selectedCoverage) return 0;
+    const selectedCoverage = coverageOptions.find(option => option.amount.toString() === formData.coverageAmount);
+    if (!selectedCoverage) return 0;
 
-    let basePremium = selectedCoverage.price;
+    let premium = selectedCoverage.premium;
     
-    // Apply destination risk multiplier
-    basePremium *= selectedDestination.riskMultiplier;
+    // Age factor
+    const age = calculateAge(formData.dateOfBirth);
+    if (age > 60) premium *= 1.8;
+    else if (age > 45) premium *= 1.4;
+    else if (age > 30) premium *= 1.1;
     
-    // Apply travel type multiplier
-    basePremium *= selectedTravelType.multiplier;
+    // Occupation risk
+    let occupationMultiplier = 1.0;
+    Object.values(occupationRisk).forEach(risk => {
+      if (formData.occupation === risk.name) {
+        occupationMultiplier = risk.multiplier;
+      }
+    });
+    premium *= occupationMultiplier;
     
-    // Apply duration multiplier (per week)
-    const weeks = Math.ceil(formData.tripDuration / 7);
-    if (formData.travelType !== 'Multi Trip (Annual)') {
-      basePremium *= Math.max(1, weeks * 0.3 + 0.7);
+    // Health conditions
+    if (formData.healthConditions && formData.healthConditions.length > 10) {
+      premium *= 1.3;
     }
     
-    // Additional charges for high-risk activities
-    if (formData.highRiskActivities === 'yes') {
-      basePremium *= 1.5;
-    }
-    
-    // Additional charges for pre-existing conditions
-    if (formData.preExistingConditions === 'yes') {
-      basePremium *= 1.3;
+    // Hazardous activities
+    if (formData.hazardousActivities === 'yes') {
+      premium *= 1.5;
     }
 
-    return Math.round(basePremium);
+    return Math.round(premium);
+  };
+
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return 30;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
   };
 
   const nextStep = () => {
     if (currentStep < totalSteps) {
-      if (currentStep === 4) {
-        // Calculate premium before moving to final step
+      if (currentStep === 3) {
         const premium = calculatePremium();
         updateFormData('totalPremium', premium);
       }
@@ -159,7 +128,7 @@ export default function TravelQuotationScreen() {
   const submitQuotation = () => {
     Alert.alert(
       'Quotation Submitted',
-      `Your travel insurance quotation has been submitted successfully. Premium: KES ${formData.totalPremium.toLocaleString()}`,
+      `Your personal accident insurance quotation has been submitted successfully. Premium: KES ${formData.totalPremium.toLocaleString()}`,
       [
         {
           text: 'OK',
@@ -169,9 +138,38 @@ export default function TravelQuotationScreen() {
     );
   };
 
+  const addBeneficiary = () => {
+    const newBeneficiary = {
+      id: Date.now(),
+      name: '',
+      relationship: '',
+      percentage: ''
+    };
+    setFormData(prev => ({
+      ...prev,
+      beneficiaries: [...prev.beneficiaries, newBeneficiary]
+    }));
+  };
+
+  const removeBeneficiary = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      beneficiaries: prev.beneficiaries.filter(ben => ben.id !== id)
+    }));
+  };
+
+  const updateBeneficiary = (id, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      beneficiaries: prev.beneficiaries.map(ben => 
+        ben.id === id ? { ...ben, [field]: value } : ben
+      )
+    }));
+  };
+
   const renderProgressBar = () => (
     <View style={styles.progressContainer}>
-      {[1, 2, 3, 4, 5].map((step) => (
+      {[1, 2, 3, 4].map((step) => (
         <View key={step} style={styles.progressItem}>
           <View style={[
             styles.progressCircle,
@@ -184,7 +182,7 @@ export default function TravelQuotationScreen() {
               {step}
             </Text>
           </View>
-          {step < 5 && (
+          {step < 4 && (
             <View style={[
               styles.progressLine,
               currentStep > step && styles.progressLineActive
@@ -200,25 +198,24 @@ export default function TravelQuotationScreen() {
       <Text style={styles.stepTitle}>Personal Information</Text>
       <Text style={styles.stepSubtitle}>Please provide your personal details</Text>
       
-      <View style={styles.inputRow}>
-        <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
-          <Text style={styles.inputLabel}>First Name</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.firstName}
-            onChangeText={(text) => updateFormData('firstName', text)}
-            placeholder="Enter first name"
-          />
-        </View>
-        <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
-          <Text style={styles.inputLabel}>Last Name</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.lastName}
-            onChangeText={(text) => updateFormData('lastName', text)}
-            placeholder="Enter last name"
-          />
-        </View>
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>First Name</Text>
+        <TextInput
+          style={styles.input}
+          value={formData.firstName}
+          onChangeText={(text) => updateFormData('firstName', text)}
+          placeholder="Enter first name"
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>Last Name</Text>
+        <TextInput
+          style={styles.input}
+          value={formData.lastName}
+          onChangeText={(text) => updateFormData('lastName', text)}
+          placeholder="Enter last name"
+        />
       </View>
 
       <View style={styles.inputContainer}>
@@ -262,246 +259,119 @@ export default function TravelQuotationScreen() {
           placeholder="DD/MM/YYYY"
         />
       </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>Occupation</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsContainer}>
+          {Object.values(occupationRisk).map((risk, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.optionButton,
+                formData.occupation === risk.name && styles.optionButtonActive
+              ]}
+              onPress={() => updateFormData('occupation', risk.name)}
+            >
+              <Text style={[
+                styles.optionText,
+                formData.occupation === risk.name && styles.optionTextActive
+              ]}>
+                {risk.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
     </View>
   );
 
   const renderStep2 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Travel Information</Text>
-      <Text style={styles.stepSubtitle}>Tell us about your travel plans</Text>
+      <Text style={styles.stepTitle}>Coverage Selection</Text>
+      <Text style={styles.stepSubtitle}>Choose your coverage amount</Text>
       
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Destination</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsContainer}>
-          {destinations.map((destination) => (
-            <TouchableOpacity
-              key={destination.id}
-              style={[
-                styles.optionButton,
-                formData.destination === destination.name && styles.optionButtonActive
-              ]}
-              onPress={() => updateFormData('destination', destination.name)}
-            >
-              <Text style={[
-                styles.optionText,
-                formData.destination === destination.name && styles.optionTextActive
-              ]}>
-                {destination.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      {coverageOptions.map((option) => (
+        <TouchableOpacity
+          key={option.id}
+          style={[
+            styles.coverageCard,
+            formData.coverageAmount === option.amount.toString() && styles.coverageCardActive
+          ]}
+          onPress={() => updateFormData('coverageAmount', option.amount.toString())}
+        >
+          <Text style={styles.coverageName}>{option.name}</Text>
+          <Text style={styles.coveragePrice}>KES {option.premium.toLocaleString()}/year</Text>
+        </TouchableOpacity>
+      ))}
 
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Travel Type</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsContainer}>
-          {travelTypes.map((type) => (
-            <TouchableOpacity
-              key={type.id}
-              style={[
-                styles.optionButton,
-                formData.travelType === type.name && styles.optionButtonActive
-              ]}
-              onPress={() => updateFormData('travelType', type.name)}
-            >
-              <Text style={[
-                styles.optionText,
-                formData.travelType === type.name && styles.optionTextActive
-              ]}>
-                {type.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      <View style={styles.inputRow}>
-        <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
-          <Text style={styles.inputLabel}>Departure Date</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.departureDate}
-            onChangeText={(text) => updateFormData('departureDate', text)}
-            placeholder="DD/MM/YYYY"
-          />
-        </View>
-        <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
-          <Text style={styles.inputLabel}>Return Date</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.returnDate}
-            onChangeText={(text) => updateFormData('returnDate', text)}
-            placeholder="DD/MM/YYYY"
-          />
-        </View>
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Trip Duration (days)</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.tripDuration.toString()}
-          onChangeText={(text) => updateFormData('tripDuration', parseInt(text) || 0)}
-          placeholder="Enter number of days"
-          keyboardType="numeric"
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Purpose of Travel</Text>
-        <View style={styles.optionsGrid}>
-          {['Tourism', 'Business', 'Education', 'Medical', 'Family Visit', 'Other'].map((purpose) => (
-            <TouchableOpacity
-              key={purpose}
-              style={[
-                styles.gridOption,
-                formData.tripPurpose === purpose && styles.gridOptionActive
-              ]}
-              onPress={() => updateFormData('tripPurpose', purpose)}
-            >
-              <Text style={[
-                styles.gridOptionText,
-                formData.tripPurpose === purpose && styles.gridOptionTextActive
-              ]}>
-                {purpose}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Text style={styles.inputLabel}>Beneficiaries</Text>
+        
+        {formData.beneficiaries.map((beneficiary, index) => (
+          <View key={beneficiary.id} style={styles.beneficiaryCard}>
+            <View style={styles.beneficiaryHeader}>
+              <Text style={styles.beneficiaryTitle}>Beneficiary {index + 1}</Text>
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => removeBeneficiary(beneficiary.id)}
+              >
+                <Text style={styles.removeButtonText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <TextInput
+              style={styles.input}
+              value={beneficiary.name}
+              onChangeText={(text) => updateBeneficiary(beneficiary.id, 'name', text)}
+              placeholder="Full name"
+            />
+            
+            <TextInput
+              style={styles.input}
+              value={beneficiary.relationship}
+              onChangeText={(text) => updateBeneficiary(beneficiary.id, 'relationship', text)}
+              placeholder="Relationship (e.g., Spouse, Child)"
+            />
+            
+            <TextInput
+              style={styles.input}
+              value={beneficiary.percentage}
+              onChangeText={(text) => updateBeneficiary(beneficiary.id, 'percentage', text)}
+              placeholder="Percentage (%)"
+              keyboardType="numeric"
+            />
+          </View>
+        ))}
+        
+        <TouchableOpacity style={styles.addButton} onPress={addBeneficiary}>
+          <Text style={styles.addButtonText}>+ Add Beneficiary</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 
   const renderStep3 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Coverage Selection</Text>
-      <Text style={styles.stepSubtitle}>Choose your coverage plan</Text>
-      
-      {coverageTypes.map((coverage) => (
-        <TouchableOpacity
-          key={coverage.id}
-          style={[
-            styles.coverageCard,
-            formData.coverageType === coverage.name && styles.coverageCardActive
-          ]}
-          onPress={() => updateFormData('coverageType', coverage.name)}
-        >
-          <View style={styles.coverageHeader}>
-            <Text style={[
-              styles.coverageTitle,
-              formData.coverageType === coverage.name && styles.coverageTitleActive
-            ]}>
-              {coverage.name}
-            </Text>
-            <Text style={[
-              styles.coveragePrice,
-              formData.coverageType === coverage.name && styles.coveragePriceActive
-            ]}>
-              KES {coverage.price.toLocaleString()}
-            </Text>
-          </View>
-          <View style={styles.coverageDetails}>
-            <Text style={styles.coverageDetail}>Medical: {coverage.medical}</Text>
-            <Text style={styles.coverageDetail}>Baggage: {coverage.baggage}</Text>
-            <Text style={styles.coverageDetail}>Trip Cancellation: {coverage.cancellation}</Text>
-          </View>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
-
-  const renderStep4 = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Additional Information</Text>
-      <Text style={styles.stepSubtitle}>Please provide additional details</Text>
+      <Text style={styles.stepTitle}>Risk Assessment</Text>
+      <Text style={styles.stepSubtitle}>Help us assess your risk profile</Text>
       
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Do you have any pre-existing medical conditions?</Text>
-        <View style={styles.radioGroup}>
-          <TouchableOpacity
-            style={[
-              styles.radioOption,
-              formData.preExistingConditions === 'yes' && styles.radioOptionActive
-            ]}
-            onPress={() => updateFormData('preExistingConditions', 'yes')}
-          >
-            <Text style={[
-              styles.radioText,
-              formData.preExistingConditions === 'yes' && styles.radioTextActive
-            ]}>
-              Yes
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.radioOption,
-              formData.preExistingConditions === 'no' && styles.radioOptionActive
-            ]}
-            onPress={() => updateFormData('preExistingConditions', 'no')}
-          >
-            <Text style={[
-              styles.radioText,
-              formData.preExistingConditions === 'no' && styles.radioTextActive
-            ]}>
-              No
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Will you participate in high-risk activities?</Text>
-        <Text style={styles.inputHelper}>e.g., skiing, mountaineering, water sports</Text>
-        <View style={styles.radioGroup}>
-          <TouchableOpacity
-            style={[
-              styles.radioOption,
-              formData.highRiskActivities === 'yes' && styles.radioOptionActive
-            ]}
-            onPress={() => updateFormData('highRiskActivities', 'yes')}
-          >
-            <Text style={[
-              styles.radioText,
-              formData.highRiskActivities === 'yes' && styles.radioTextActive
-            ]}>
-              Yes
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.radioOption,
-              formData.highRiskActivities === 'no' && styles.radioOptionActive
-            ]}
-            onPress={() => updateFormData('highRiskActivities', 'no')}
-          >
-            <Text style={[
-              styles.radioText,
-              formData.highRiskActivities === 'no' && styles.radioTextActive
-            ]}>
-              No
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Travel History</Text>
+        <Text style={styles.inputLabel}>Lifestyle</Text>
         <View style={styles.optionsGrid}>
-          {['First time traveler', 'Occasional traveler', 'Frequent traveler', 'Business traveler'].map((history) => (
+          {['Sedentary', 'Active', 'Very Active', 'Athletic'].map((lifestyle) => (
             <TouchableOpacity
-              key={history}
+              key={lifestyle}
               style={[
                 styles.gridOption,
-                formData.travelHistory === history && styles.gridOptionActive
+                formData.lifestyle === lifestyle && styles.gridOptionActive
               ]}
-              onPress={() => updateFormData('travelHistory', history)}
+              onPress={() => updateFormData('lifestyle', lifestyle)}
             >
               <Text style={[
                 styles.gridOptionText,
-                formData.travelHistory === history && styles.gridOptionTextActive
+                formData.lifestyle === lifestyle && styles.gridOptionTextActive
               ]}>
-                {history}
+                {lifestyle}
               </Text>
             </TouchableOpacity>
           ))}
@@ -509,61 +379,93 @@ export default function TravelQuotationScreen() {
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Emergency Contact</Text>
+        <Text style={styles.inputLabel}>Health Conditions</Text>
         <TextInput
-          style={styles.input}
-          value={formData.emergencyContact}
-          onChangeText={(text) => updateFormData('emergencyContact', text)}
-          placeholder="Name and phone number"
+          style={[styles.input, styles.textArea]}
+          value={formData.healthConditions}
+          onChangeText={(text) => updateFormData('healthConditions', text)}
+          placeholder="List any health conditions (optional)"
+          multiline
+          numberOfLines={3}
         />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>Do you participate in hazardous activities?</Text>
+        <Text style={styles.inputHelper}>e.g., extreme sports, dangerous hobbies</Text>
+        <View style={styles.radioGroup}>
+          <TouchableOpacity
+            style={[
+              styles.radioOption,
+              formData.hazardousActivities === 'yes' && styles.radioOptionActive
+            ]}
+            onPress={() => updateFormData('hazardousActivities', 'yes')}
+          >
+            <Text style={[
+              styles.radioText,
+              formData.hazardousActivities === 'yes' && styles.radioTextActive
+            ]}>
+              Yes
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.radioOption,
+              formData.hazardousActivities === 'no' && styles.radioOptionActive
+            ]}
+            onPress={() => updateFormData('hazardousActivities', 'no')}
+          >
+            <Text style={[
+              styles.radioText,
+              formData.hazardousActivities === 'no' && styles.radioTextActive
+            ]}>
+              No
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
 
-  const renderStep5 = () => (
+  const renderStep4 = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Premium Calculation</Text>
-      <Text style={styles.stepSubtitle}>Your travel insurance quotation</Text>
+      <Text style={styles.stepSubtitle}>Your personal accident insurance quotation</Text>
       
       <View style={styles.summaryCard}>
         <Text style={styles.summaryTitle}>Policy Summary</Text>
         
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Traveler:</Text>
+          <Text style={styles.summaryLabel}>Insured:</Text>
           <Text style={styles.summaryValue}>{formData.firstName} {formData.lastName}</Text>
         </View>
         
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Destination:</Text>
-          <Text style={styles.summaryValue}>{formData.destination}</Text>
+          <Text style={styles.summaryLabel}>Coverage Amount:</Text>
+          <Text style={styles.summaryValue}>KES {parseInt(formData.coverageAmount || 0).toLocaleString()}</Text>
         </View>
         
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Travel Type:</Text>
-          <Text style={styles.summaryValue}>{formData.travelType}</Text>
-        </View>
-        
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Duration:</Text>
-          <Text style={styles.summaryValue}>{formData.tripDuration} days</Text>
-        </View>
-        
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Coverage:</Text>
-          <Text style={styles.summaryValue}>{formData.coverageType}</Text>
+          <Text style={styles.summaryLabel}>Occupation:</Text>
+          <Text style={styles.summaryValue}>{formData.occupation}</Text>
         </View>
         
         <View style={styles.divider} />
         
         <View style={styles.summaryRow}>
-          <Text style={styles.totalLabel}>Total Premium:</Text>
+          <Text style={styles.totalLabel}>Annual Premium:</Text>
           <Text style={styles.totalValue}>KES {formData.totalPremium.toLocaleString()}</Text>
+        </View>
+        
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Monthly Premium:</Text>
+          <Text style={styles.summaryValue}>KES {Math.round(formData.totalPremium / 12).toLocaleString()}</Text>
         </View>
       </View>
 
       <View style={styles.disclaimerContainer}>
         <Text style={styles.disclaimerText}>
-          This is a preliminary quotation. Final premium may vary based on additional underwriting requirements.
+          This is a preliminary quotation. Final premium may vary based on medical examination and underwriting.
         </Text>
       </View>
     </View>
@@ -575,7 +477,6 @@ export default function TravelQuotationScreen() {
       case 2: return renderStep2();
       case 3: return renderStep3();
       case 4: return renderStep4();
-      case 5: return renderStep5();
       default: return renderStep1();
     }
   };
@@ -592,7 +493,7 @@ export default function TravelQuotationScreen() {
         >
           <Text style={styles.headerBackText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Travel Insurance</Text>
+        <Text style={styles.headerTitle}>Personal Accident Insurance</Text>
         <View style={styles.headerRight} />
       </View>
 
@@ -719,10 +620,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     marginBottom: Spacing.md,
   },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   inputLabel: {
     fontSize: Typography.fontSize.md,
     fontWeight: Typography.fontWeight.medium,
@@ -742,6 +639,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     fontSize: Typography.fontSize.md,
     backgroundColor: '#FFFFFF',
+    marginBottom: Spacing.sm,
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
   },
   optionsContainer: {
     marginTop: Spacing.xs,
@@ -806,35 +708,58 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     backgroundColor: '#FEF2F2',
   },
-  coverageHeader: {
+  coverageName: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: Typography.fontWeight.semibold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+  },
+  coveragePrice: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.primary,
+  },
+  beneficiaryCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: Spacing.xs,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  beneficiaryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.sm,
   },
-  coverageTitle: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: Typography.fontWeight.semibold,
-    color: Colors.textPrimary,
-  },
-  coverageTitleActive: {
-    color: Colors.primary,
-  },
-  coveragePrice: {
-    fontSize: Typography.fontSize.lg,
+  beneficiaryTitle: {
+    fontSize: Typography.fontSize.md,
     fontWeight: Typography.fontWeight.bold,
     color: Colors.textPrimary,
   },
-  coveragePriceActive: {
-    color: Colors.primary,
+  removeButton: {
+    backgroundColor: Colors.error,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: 4,
   },
-  coverageDetails: {
+  removeButtonText: {
+    fontSize: Typography.fontSize.sm,
+    color: '#FFFFFF',
+    fontWeight: Typography.fontWeight.medium,
+  },
+  addButton: {
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+    borderRadius: Spacing.xs,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
     marginTop: Spacing.sm,
   },
-  coverageDetail: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.xs,
+  addButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: Typography.fontWeight.medium,
+    color: Colors.primary,
   },
   radioGroup: {
     flexDirection: 'row',
