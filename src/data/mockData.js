@@ -1,6 +1,9 @@
 // Centralized Mock Data for PataBima App
 // This ensures consistency across all screens
 
+// Import centralized insurance categories
+export { INSURANCE_CATEGORIES, getActiveCategories, getPopularCategories, getCategoriesByStatus } from './insuranceCategories';
+
 export const MOCK_AGENT = {
   code: 'IA16332',
   name: 'John Kamau',

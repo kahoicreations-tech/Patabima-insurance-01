@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography } from '../../constants';
 import { SafeScreen, EnhancedCard, StatCard, StatusBadge, CompactCurvedHeader } from '../../components';
+import { INSURANCE_CATEGORIES, getCategoryStatusMessage, CATEGORY_STATUS } from '../../data';
 
 export default function HomeScreen() {
   const [currentCampaign, setCurrentCampaign] = useState(0);
@@ -21,68 +22,8 @@ export default function HomeScreen() {
     nextPayout: '16th July, 2025'
   };
 
-  const insuranceCategories = [
-    { 
-      id: 1, 
-      name: 'Motor Vehicle', 
-      icon: '🚗', 
-      image: require('../../assets/images/motor.png'),
-      color: Colors.primary, 
-      screen: 'MotorQuotation' 
-    },
-    { 
-      id: 2, 
-      name: 'Medical', 
-      icon: '🏥', 
-      image: require('../../assets/images/health.png'),
-      color: Colors.success, 
-      screen: 'MedicalQuotation' 
-    },
-    { 
-      id: 3, 
-      name: 'WIBA', 
-      icon: '👷', 
-      image: require('../../assets/images/wiba.png'),
-      color: Colors.warning, 
-      screen: 'WIBAQuotation' 
-    },
-    { 
-      id: 4, 
-      name: 'Last Expense', 
-      icon: '⚰️', 
-      image: require('../../assets/images/funeral.png'),
-      color: Colors.secondary, 
-      screen: 'LastExpenseQuotation' 
-    },
-    { 
-      id: 5, 
-      name: 'Travel', 
-      icon: '✈️', 
-      color: Colors.info, 
-      screen: 'TravelQuotation' 
-    },
-    { 
-      id: 6, 
-      name: 'Personal Accident', 
-      icon: '🛡️', 
-      color: Colors.primary, 
-      screen: 'PersonalAccidentQuotation' 
-    },
-    { 
-      id: 7, 
-      name: 'Professional Indemnity', 
-      icon: '💼', 
-      color: Colors.success, 
-      screen: null 
-    },
-    { 
-      id: 8, 
-      name: 'Domestic Package', 
-      icon: '🏠', 
-      color: Colors.warning, 
-      screen: null 
-    }
-  ];
+  // Use centralized insurance categories data
+  const insuranceCategories = INSURANCE_CATEGORIES;
 
   const campaigns = [
     {
@@ -285,21 +226,34 @@ export default function HomeScreen() {
                   index === currentCategory && styles.activeCategoryCard
                 ]}
                 onPress={() => {
-                  // Show maintenance alert for all insurance categories
-                  Alert.alert(
-                    'Under Maintenance',
-                    `${item.name} insurance is currently under maintenance. We are working to improve your experience and will be back soon!`,
-                    [
-                      { text: 'OK', style: 'default' },
-                      { text: 'Get Notified', onPress: () => {
-                        Alert.alert(
-                          'Notification Set',
-                          `You will be notified when ${item.name} insurance is available.`,
-                          [{ text: 'OK' }]
-                        );
-                      }}
-                    ]
-                  );
+                  // Handle category selection based on status
+                  if (item.status === CATEGORY_STATUS.ACTIVE && item.screen) {
+                    // Navigate to the quotation screen for active categories
+                    navigation.navigate(item.screen);
+                  } else {
+                    // Show appropriate status message for non-active categories
+                    const statusMessage = getCategoryStatusMessage(item);
+                    const alertTitle = item.status === CATEGORY_STATUS.MAINTENANCE 
+                      ? 'Under Maintenance' 
+                      : item.status === CATEGORY_STATUS.COMING_SOON 
+                        ? 'Coming Soon' 
+                        : 'Unavailable';
+                    
+                    Alert.alert(
+                      alertTitle,
+                      statusMessage,
+                      [
+                        { text: 'OK', style: 'default' },
+                        { text: 'Get Notified', onPress: () => {
+                          Alert.alert(
+                            'Notification Set',
+                            `You will be notified when ${item.name} insurance is available.`,
+                            [{ text: 'OK' }]
+                          );
+                        }}
+                      ]
+                    );
+                  }
                 }}
               >
                 <View style={[
@@ -318,7 +272,7 @@ export default function HomeScreen() {
                 ]}>{item.name}</Text>
               </TouchableOpacity>
             )}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoriesSlider}

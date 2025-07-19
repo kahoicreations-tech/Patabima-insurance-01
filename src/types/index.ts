@@ -24,14 +24,37 @@ export interface AuthResponse {
   error?: string;
 }
 
-// Insurance and Business Types
+// Insurance Category Status Types
+export type CategoryStatus = 'active' | 'maintenance' | 'coming_soon' | 'disabled';
+export type CategoryType = 'motor' | 'health' | 'life' | 'general' | 'commercial';
+
+// Enhanced Insurance Category Interface
 export interface InsuranceCategory {
   id: string;
   name: string;
+  shortName: string;
+  description: string;
   icon: string;
+  image?: any; // React Native require() type
   color: string;
-  isActive: boolean;
-  description?: string;
+  type: CategoryType;
+  status: CategoryStatus;
+  screen?: string;
+  isPopular: boolean;
+  commissionRate: number;
+  minimumPremium: number;
+  features: string[];
+  tags: string[];
+}
+
+// Legacy Insurance Category Interface (for backward compatibility)
+export interface LegacyInsuranceCategory {
+  id: number;
+  name: string;
+  icon: string;
+  image?: any;
+  color: string;
+  screen?: string;
 }
 
 export interface PolicyDetails {
