@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Expo
+frontend/.expo/
+frontend/.expo-shared/
+frontend/dist/
+
+# Environment
+.env
+.env.local
+frontend/.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build outputs
+frontend/dist/
+frontend/web-build/
+
+# Large assets
+*.mp4
+*.mov
+*.avi
+frontend/assets/*.mp4
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+insurance-app/venv/
+insurance-app/env/
+*.egg-info/
+.pytest_cache/
+
+# Django
+insurance-app/*.log
+insurance-app/db.sqlite3
+insurance-app/media/
+insurance-app/staticfiles/
+
+# Deployment
+*.zip
+*.tar.gz
+lambda_build/
+lambda-deployed/
